@@ -6,7 +6,7 @@ fp = FAAParser()
 fp.parse()
 
 ccp = CameronCountyParser()
-parsed = ccp.parse()
-print(parsed)
+ccp.parse()
+print(ccp.closures)
 #database.setup_database()  #reset database
 database.append_cameroncounty(parsed)
