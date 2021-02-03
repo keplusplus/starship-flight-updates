@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import locale
 from datetime import datetime, time
 
 class CameronCountyParser:
@@ -12,6 +13,9 @@ class CameronCountyParser:
         'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
     }
     closures = []
+
+    def __init__(self):
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
     def parse(self):
         self.closures = []
@@ -27,7 +31,11 @@ class CameronCountyParser:
 
             date = datetime.strptime(date_text[date_text.find(', ') + 2:], '%B %d, %Y')
             begin = datetime.combine(date, datetime.strptime(time_text[:time_text.find(' to ')], '%I:%M %p').time())
-            end = datetime.combine(date, datetime.strptime(time_text[time_text.find(' to ') + 4:], '%I:%M %p').time())
+
+            if time_text[time_text.find(' to ') + 4].isdigit():
+                end = datetime.combine(date, datetime.strptime(time_text[time_text.find(' to ') + 4:], '%I:%M %p').time())
+            else:    
+                end = datetime.strptime(time_text[time_text.find(' to ') + 4:], '%b %d – %I:%M %p').replace(year=date.year)
             
             if 'Canceled' in status_text:
                 valid = False
