@@ -1,6 +1,6 @@
 import database
 from data_sources.cameron_county import CameronCountyParser
-from parser.faa import FAAParser
+from data_sources.faa import FAAParser
 
 fp = FAAParser()
 fp.parse()
