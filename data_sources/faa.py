@@ -34,14 +34,14 @@ class FAAParser:
         space_entries = []
         for row in rows:
             try:
-                if 'SPACE OPERATIONS' in row.find_all('td')[4].get_text():
+                if 'SPACE OPERATIONS' in row.find_all('td')[4].get_text().upper():
                     space_entries.append(row)
             except IndexError:
                 pass
         
         links = []
         for se in space_entries:
-            if 'BROWNSVILLE' in se.find_all('td')[5].get_text():
+            if 'BROWNSVILLE' in se.find_all('td')[5].get_text().upper():
                 links.append(se.find_all('td')[5].find('a')['href'])
         
         for url in links:
@@ -64,11 +64,11 @@ class FAAParser:
 
             for row in tables500[0].find_all('tr'):
                 try:
-                    if 'Beginning' in row.find_all('td')[0].get_text():
+                    if 'beginning' in row.find_all('td')[0].get_text().lower():
                         begin_text = row.find_all('td')[1].get_text().strip()
                         begin_datetime = datetime.strptime(begin_text, '%B %d, %Y at %H%M UTC')
                         tfr['begin'] = begin_datetime
-                    if 'Ending' in row.find_all('td')[0].get_text():
+                    if 'ending' in row.find_all('td')[0].get_text().lower():
                         end_text = row.find_all('td')[1].get_text().strip()
                         end_datetime = datetime.strptime(end_text, '%B %d, %Y at %H%M UTC')
                         tfr['end'] = end_datetime
@@ -77,14 +77,20 @@ class FAAParser:
             
             for row in tables500[1].find_all('tr'):
                 try:
-                    if 'Altitude' in row.find_all('td')[2].get_text():
+                    if 'altitude' in row.find_all('td')[2].get_text().lower():
                         altitude_text = row.find_all('td')[2].get_text()
-                        if 'surface' in altitude_text:
+                        if 'surface' in altitude_text.lower():
                             tfr['fromSurface'] = True
                         else:
                             tfr['fromSurface'] = False
                         
-                        to_alt = altitude_text[altitude_text.find('up to and including ') + 20:altitude_text.find(' feet MSL')]
+                        if altitude_text.find('up to and including ') != -1 and altitude_text.find(' feet MSL') != -1:
+                            to_alt = altitude_text[altitude_text.find('up to and including ') + 20:altitude_text.find(' feet MSL')]
+                        elif 'unlimited' in altitude_text.lower():
+                            to_alt = -1
+                        else:
+                            to_alt = 0
+                            
                         tfr['toAltitude'] = to_alt
                 except IndexError:
                     pass
