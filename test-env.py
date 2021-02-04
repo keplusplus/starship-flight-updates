@@ -15,8 +15,9 @@ tfr_list = fp.parse()
 for tfr in tfr_list:
     pretty(tfr, 2)
 
-# ccp = CameronCountyParser()
-# ccp.parse()
-# print(ccp.closures)
-# database.setup_database()  #reset database
-# database.append_cameroncounty(parsed)
+ccp = CameronCountyParser()
+ccp.parse()
+print(ccp.closures)
+#database.setup_database()  #reset database
+database.append_cameroncounty(ccp.closures)
+print(database.road_closure_today())

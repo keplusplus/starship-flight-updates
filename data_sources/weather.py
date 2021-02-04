@@ -17,7 +17,7 @@ def current_weather():
 def wind_text(w:dict, wind_limit = 32):
     wind_speed = w['wind_speed']
     if wind_speed > wind_limit:  #windspeed > 20mph
-        return ('too windy', False)
+        return ('Too windy', False)
     elif wind_speed > wind_limit/2:
         return ('Windy', True)
     elif wind_speed > 0:
