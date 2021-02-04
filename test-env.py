@@ -9,4 +9,5 @@ ccp = CameronCountyParser()
 ccp.parse()
 print(ccp.closures)
 #database.setup_database()  #reset database
-database.append_cameroncounty(parsed)
+database.append_cameroncounty(ccp.closures)
+print(database.road_closure_today())
