@@ -49,3 +49,8 @@ def append_cameroncounty(data: list, daily:bool = False):   #daily = daily updat
             print('Closure gone from site')
             c.execute('UPDATE closure SET valid = FALSE WHERE begin = ? AND end = ? AND valid = ?', list(valid))
     conn.commit()
+
+def road_closure_today():
+    if c.execute('SELECT begin, end FROM closure WHERE DATE(begin) = ? OR DATE(end) = ?',(datetime.date.today(),datetime.date.today())).fetchone():
+        return c.execute('SELECT begin, end FROM closure WHERE DATE(begin) = ? OR DATE(end) = ?',(datetime.date.today(),datetime.date.today())).fetchone()
+    return False
