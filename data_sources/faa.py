@@ -85,7 +85,7 @@ class FAAParser:
                             tfr['fromSurface'] = False
                         
                         to_alt = altitude_text[altitude_text.find('up to and including ') + 20:altitude_text.find(' feet MSL')]
-                        tfr['toAltitude'] = to_alt
+                        tfr['toAltitude'] = int(to_alt)
                 except IndexError:
                     pass
             
