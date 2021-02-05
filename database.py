@@ -119,7 +119,7 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
             in_db = c.execute('SELECT begin,end,fromSurface,toAltitude,announced FROM faa WHERE begin = ? AND end = ?',(d['begin'], d['end'])).fetchone()
             if message and in_db[4]:
                 if in_db[2] != d['fromSurface'] and in_db[3] != d['toAltitude']:
-                    telebot.send_channel_message('<b>FromSurface and max. alt have changed to:</b>\n'+str(d['fromSurface'])+' and 'd['toAltitude']+' ft'+status())
+                    telebot.send_channel_message('<b>FromSurface and max. alt have changed to:</b>\n'+str(d['fromSurface'])+' and '+str(d['toAltitude'])+' ft'+status())
                 elif in_db[2] != d['fromSurface']:
                     telebot.send_channel_message('<b>FromSurface has changed to: '+str(d['fromSurface'])+'</b>'+status())
                 elif in_db[3] != d['toAltitude']:
