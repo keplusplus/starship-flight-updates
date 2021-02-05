@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import locale
+import telebot
 from datetime import datetime, time
 
 class CameronCountyParser:
@@ -18,34 +19,38 @@ class CameronCountyParser:
         locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
     def parse(self):
-        self.closures = []
-        req = requests.get(self.url, self.headers)
-        soup = BeautifulSoup(req.content, 'html.parser')
-        table = soup.find('table')
-        tr = table.find('tbody').find_all('tr')
-        for row in tr:
-            td = row.find_all('td')
-            date_text = td[1].get_text()
-            time_text = td[2].get_text()
-            status_text = td[3].get_text()
+        try:
+            self.closures = []
+            req = requests.get(self.url, self.headers)
+            soup = BeautifulSoup(req.content, 'html.parser')
+            table = soup.find('table')
+            tr = table.find('tbody').find_all('tr')
+            for row in tr:
+                td = row.find_all('td')
+                date_text = td[1].get_text()
+                time_text = td[2].get_text()
+                status_text = td[3].get_text()
 
-            date = datetime.strptime(date_text[date_text.find(', ') + 2:], '%B %d, %Y')
-            begin = datetime.combine(date, datetime.strptime(time_text[:time_text.find(' to ')], '%I:%M %p').time())
+                date = datetime.strptime(date_text[date_text.find(', ') + 2:], '%B %d, %Y')
+                begin = datetime.combine(date, datetime.strptime(time_text[:time_text.find(' to ')], '%I:%M %p').time())
 
-            if time_text[time_text.find(' to ') + 4].isdigit():
-                end = datetime.combine(date, datetime.strptime(time_text[time_text.find(' to ') + 4:], '%I:%M %p').time())
-            else:    
-                end = datetime.strptime(time_text[time_text.find(' to ') + 4:], '%b %d – %I:%M %p').replace(year=date.year)
+                if time_text[time_text.find(' to ') + 4].isdigit():
+                    end = datetime.combine(date, datetime.strptime(time_text[time_text.find(' to ') + 4:], '%I:%M %p').time())
+                else:    
+                    end = datetime.strptime(time_text[time_text.find(' to ') + 4:], '%b %d – %I:%M %p').replace(year=date.year)
+                
+                if 'Canceled' in status_text:
+                    valid = False
+                else:
+                    valid = True
+
+                self.closures.append({
+                    'begin': begin,
+                    'end': end,
+                    'valid': valid
+                })
             
-            if 'Canceled' in status_text:
-                valid = False
-            else:
-                valid = True
-
-            self.closures.append({
-                'begin': begin,
-                'end': end,
-                'valid': valid
-            })
-
-        return self.closures
+            return self.closures
+        except Exception as e:
+            telebot.send_err_message('Error parsing Cameron County Road Closures!\n\nException:\n' + str(e))
+            return []
