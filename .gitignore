@@ -130,3 +130,6 @@ dmypy.json
 
 # Database
 *.db
+
+# Source files for testing purposes
+**/*.test.py
