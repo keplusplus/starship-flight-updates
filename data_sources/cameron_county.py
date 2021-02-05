@@ -53,3 +53,4 @@ class CameronCountyParser:
             return self.closures
         except Exception as e:
             telebot.send_err_message('Error parsing Cameron County Road Closures!\n\nException:\n' + str(e))
+            return []
