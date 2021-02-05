@@ -18,13 +18,13 @@ def daily_update(): #every boca morning
     database.append_faa(faa.tfrs,False)
 
     w = weather.today_forecast()
-    print('gathered all data')
+    print('gathered all data & waiting')
     #make sure the message is sent exactly at 13:00
     time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
     flight = (weather.weather_text(w)[1] and weather.wind_text(w)[1] and bool(database.road_closure_today()[0]) and database.faa_today()[0])
     staticfire = bool(database.road_closure_today()[0])
     #Header & Roadclosure
-    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗨𝗽𝗱𝗮𝘁𝗲</b><i> (local time '+database.datetime_to_string(datetime.datetime.now()-datetime.timedelta(hours=6))+')</i>\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
+    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗨𝗽𝗱𝗮𝘁𝗲</b><i> (local time '+database.datetime_to_string(datetime.datetime.now()-datetime.timedelta(hours=7))+')</i>\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
     if database.road_closure_today()[0]:
         out+= '✅\n'
         for x in database.faa_today()[1:]:
@@ -74,6 +74,7 @@ def daily_update(): #every boca morning
     database.announce_today_faas()
 
 def regular_update():
+
     print('fetching update')
     ccp = CameronCountyParser()
     ccp.parse()
@@ -85,8 +86,8 @@ def regular_update():
     #w = weather.current_weather()
 
 def main():
-    schedule.every(15).minutes.do(regular_update)
     schedule.every().day.at("12:45").do(daily_update)
+    schedule.every(15).to(25).minutes.do(regular_update)
     
     while 1:
         schedule.run_pending()
