@@ -52,11 +52,12 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                 if message:
                     telebot.send_channel_message('A new road closuer has been scheduled!✅\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i>(UTC)')
             c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
-    for in_db in c.execute('SELECT id, begin,end FROM closure WHERE valid = True').fetchall():
-        if (in_db[1],in_db[2]) not in data_as_list:
-            c.execute('DELETE FROM closure WHERE id = ?',(in_db[0],))
-            if message and (sql_to_datetime(in_db[1]) <= datetime.datetime.now() <= sql_to_datetime(in_db[2])):
-                telebot.send_channel_message('An active road closure has been canceled!❌\n(<i><s>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</s> (UTC)</i>)')
+    if data != []:
+        for in_db in c.execute('SELECT id, begin,end FROM closure WHERE valid = True').fetchall():
+            if (in_db[1],in_db[2]) not in data_as_list:
+                c.execute('DELETE FROM closure WHERE id = ?',(in_db[0],))
+                if message and (sql_to_datetime(in_db[1]) <= datetime.datetime.now() <= sql_to_datetime(in_db[2])):
+                    telebot.send_channel_message('An active road closure has been canceled!❌\n(<i><s>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</s> (UTC)</i>)')
     conn.commit()              
 
 def announce_today_closures():
@@ -108,11 +109,12 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
                         telebot.send_channel_message('New TFR has been issued❌\nMax alt.: '+str(d['toAltitude'])+' ft, flight is not possible!\n<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' (UTC)</i>')
             c.execute('INSERT INTO faa(begin,end,fromSurface,toAltitude,announced) VALUES(?,?,?,?,?)',(d['begin'],d['end'],d['fromSurface'],d['toAltitude'],announced))
     #deleted faa
-    for in_db in c.execute('SELECT begin, end FROM faa').fetchall():
-        if not (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) in data_as_list:
-            if message and (sql_to_datetime(in_db[0]) <= datetime.datetime.now() <= sql_to_datetime(in_db[1])):
-                telebot.send_channel_message('missing')
-            c.execute('DELETE FROM faa WHERE begin = ? AND end = ?',(sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])))
+    if data != []:
+        for in_db in c.execute('SELECT begin, end FROM faa').fetchall():
+            if not (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) in data_as_list:
+                if message and (sql_to_datetime(in_db[0]) <= datetime.datetime.now() <= sql_to_datetime(in_db[1])):
+                    telebot.send_channel_message('missing')
+                c.execute('DELETE FROM faa WHERE begin = ? AND end = ?',(sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])))
     conn.commit()
 
 def announce_today_faas():
