@@ -9,6 +9,7 @@ from data_sources.faa import FAAParser
 
 
 def daily_update(): #every boca morning
+    print('>daily')
     ccp = CameronCountyParser()
     ccp.parse()
     database.append_cameroncounty(ccp.closures,False)
@@ -18,7 +19,8 @@ def daily_update(): #every boca morning
     database.append_faa(faa.tfrs,False)
 
     w = weather.today_forecast()
-    print('gathered all data & waiting')
+    database.append_weather(w)
+    print('>collected & waiting')
     #make sure the message is sent exactly at 13:00
     time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
     flight = (weather.weather_text(w)[1] and weather.wind_text(w)[1] and bool(database.road_closure_today()[0]) and database.faa_today()[0])
@@ -69,13 +71,12 @@ def daily_update(): #every boca morning
     else:
         out+='Nothing big happening on current data\n'
     out+='<i>(We will keep you updated if anything changes!)</i>'
-    print(telebot.send_channel_message(out, True))
+    telebot.send_channel_message(out, True)
     database.announce_today_closures()
     database.announce_today_faas()
 
 def regular_update():
-
-    print('fetching update')
+    print('>updating')
     ccp = CameronCountyParser()
     ccp.parse()
     database.append_cameroncounty(ccp.closures)
@@ -83,7 +84,7 @@ def regular_update():
     faa = FAAParser()
     faa.parse()
     database.append_faa(faa.tfrs)
-    #w = weather.current_weather()
+    database.weather_change(weather.current_weather())
 
 def main():
     schedule.every().day.at("12:45").do(daily_update)
