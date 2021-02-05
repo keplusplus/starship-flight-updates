@@ -91,7 +91,7 @@ class FAAParser:
                         else:
                             to_alt = 0
                             
-                        tfr['toAltitude'] = to_alt
+                        tfr['toAltitude'] = int(to_alt)
                 except IndexError:
                     pass
             
