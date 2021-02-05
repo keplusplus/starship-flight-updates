@@ -10,7 +10,7 @@ from data_sources.faa import FAAParser
 
 def daily_update(): #every boca morning
     print('>daily')
-    try
+    try:
         ccp = CameronCountyParser()
         ccp.parse()
         database.append_cameroncounty(ccp.closures,False)
