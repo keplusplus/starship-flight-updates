@@ -18,7 +18,7 @@ def send_photo(chatid, img, caption=''):
         return requests.post('https://api.telegram.org/bot'+ bot_token + '/sendPhoto?chat_id='+str(chatid)+ '&parse_mode=HTML', files={'photo': open(img, 'rb')}).json()
 
 def send_err_message(message):
-    return send_message('⚠️'+message)
+    return send_message(578452596,'⚠️'+message)
 
 def send_channel_message(message, disable_link_preview = False):
     return send_message(-1001163862279, message, disable_link_preview)
