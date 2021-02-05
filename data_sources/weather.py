@@ -3,7 +3,7 @@
 #25.997083229714256, -97.15597286864448
 #http://history.openweathermap.org/data/2.5/history/city?lat={lat}&lon={lon}&type=hour&start={start}&end={end}&appid={API key}
 
-import requests
+import requests, json
 APIKEY = 'a973723427ca8acbc74e7c47075db6fa'
 
 def today_forecast():
@@ -26,14 +26,23 @@ def wind_text(w:dict, wind_limit = 32):
     else:
         return ('No wind', True)
 
+def wind(wind_speed, wind_limit = 32) -> bool:
+    if wind_speed > wind_limit:  #windspeed > 20mph
+        return False
+    else:
+        return True
+
 def weather_text(w:dict):
     weather_id = str(w['weather'][0]['id'])[0]
     out = w['weather'][0]['main']+' ('+w['weather'][0]['description']+')'
-    if weather_id in ['8']:
+    if weather_id in ['8']:    #more id's can be added later
         return (out, True)
     else:
         return (out, False)
 
-def weather_change():
-    #http://history.openweathermap.org/data/2.5/history/city?lat={lat}&lon={lon}&type=hour&start={start}&end={end}&appid={API key}
-    pass
+def weather(weather_id) -> bool:
+    if str(weather_id)[0] in ['8']:    #more id's can be added later
+        return True
+    else:
+        return False
+    
