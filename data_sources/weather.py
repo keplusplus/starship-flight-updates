@@ -1,6 +1,7 @@
 #https://openweathermap.org/api/
 #https://openweathermap.org/weather-conditions#Weather-Condition-Codes-2
 #25.997083229714256, -97.15597286864448
+#http://history.openweathermap.org/data/2.5/history/city?lat={lat}&lon={lon}&type=hour&start={start}&end={end}&appid={API key}
 
 import requests
 APIKEY = 'a973723427ca8acbc74e7c47075db6fa'
@@ -32,3 +33,7 @@ def weather_text(w:dict):
         return (out, True)
     else:
         return (out, False)
+
+def weather_change():
+    #http://history.openweathermap.org/data/2.5/history/city?lat={lat}&lon={lon}&type=hour&start={start}&end={end}&appid={API key}
+    pass
