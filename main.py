@@ -93,7 +93,7 @@ def regular_update():
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
 def main():
-    schedule.every().day.at("12:45").do(daily_update)
+    schedule.every().day.at("12:55").do(daily_update)
     schedule.every(15).to(25).minutes.do(regular_update)
     
     while 1:
