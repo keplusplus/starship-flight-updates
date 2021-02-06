@@ -69,6 +69,8 @@ def status() -> str:    #flight or static fire
                         out+= '<i>Static fire or wdr are still possible</i>'
                     else:
                         return '<i>Nothing is possible anymore</i>'
+                if status_in_db[0] == flight and status_in_db[0] == static:
+                    return '\n[flight: '+str(flight)+'|staticfire: '+str(static)+']'
             c.execute('INSERT INTO status(flight,static,timestamp) VALUES(?,?,?)',(flight,static,datetime.datetime.now()))
             conn.commit()
     except Exception as e:
@@ -96,7 +98,7 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                 c.execute('UPDATE closure SET begin = ?, end = ?, valid = ? WHERE begin = ? OR end = ?',(d['begin'],d['end'],d['valid'],d['begin'],d['end']))
             else:   #not in db
                 announced = False
-                if datetime.datetime.now().time() > daily_time and (d['begin'].date() == datetime.date.today() or datetime.date.today() == d['end'].date()) and d['end'] > datetime.datetime.now():
+                if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.now():
                     announced = True
                     if message:
                         telebot.send_channel_message('<b>A new road closuer has been scheduled!✅</b>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i>(UTC)'+status())
@@ -141,7 +143,7 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
             else:   #not in db
                 #new faa
                 announced = False
-                if datetime.datetime.now().time() > daily_time and (d['begin'].date() == datetime.date.today() or datetime.date.today() == d['end'].date()) and d['end'] > datetime.datetime.now():
+                if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.now():
                     announced = True
                     if message:
                         if d['toAltitude'] == -1:
