@@ -1,4 +1,4 @@
-import database,telebot,datetime,time, schedule
+import database,telebot,datetime,time, schedule, active
 from data_sources import weather
 from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
@@ -95,10 +95,13 @@ def regular_update():
 def main():
     schedule.every().day.at("12:55").do(daily_update)
     schedule.every(15).to(25).minutes.do(regular_update)
-    
+    print('>starting loop')
     while 1:
         schedule.run_pending()
         time.sleep(1)
 
 if __name__ == "__main__":
+    active.start()
+    regular_update()
+    database.status()
     main()

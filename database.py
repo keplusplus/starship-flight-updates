@@ -1,7 +1,8 @@
 import sqlite3, telebot, datetime
 from data_sources import weather
 
-conn = sqlite3.connect(r'.\starship-flight-updates\starship.db')
+db = r'.\starship-flight-updates\starship.db'
+conn = sqlite3.connect(db)
 c = conn.cursor()
 
 def reset_database():
@@ -50,6 +51,17 @@ def faa_today():
                 out.append((sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1]),in_db[2],False))
     return out
 
+def road_closure_active():  #used by thread
+    conn = sqlite3.connect(db)  #needs own db because it's threaded
+    c = conn.cursor()
+    if c.execute('SELECT * from closure WHERE begin <= Datetime("now") AND end > Datetime("now") ORDER BY begin AND valid = True DESC LIMIT 1').fetchone():
+        in_db = c.execute('SELECT begin, end from closure WHERE begin <= Datetime("now") AND end > Datetime("now") ORDER BY begin AND valid = True DESC LIMIT 1').fetchone()
+        return (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1]))
+    return ()
+
+def faa_active(min = 10):  #in last min
+    pass
+
 def status() -> str:    #flight or static fire
     out = ''
     try:
@@ -70,7 +82,7 @@ def status() -> str:    #flight or static fire
                     else:
                         return '<i>Nothing is possible anymore</i>'
                 if status_in_db[0] == flight and status_in_db[0] == static:
-                    return '\n[flight: '+str(flight)+'|staticfire: '+str(static)+']'
+                    return '\n[no status change, flight: '+str(flight)+'|staticfire: '+str(static)+']'
             c.execute('INSERT INTO status(flight,static,timestamp) VALUES(?,?,?)',(flight,static,datetime.datetime.now()))
             conn.commit()
     except Exception as e:
@@ -105,7 +117,7 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                 c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
         if data != []:
             for in_db in c.execute('SELECT id, begin,end FROM closure WHERE valid = True').fetchall():
-                if (in_db[1],in_db[2]) not in data_as_list:
+                if (sql_to_datetime(in_db[1]),sql_to_datetime(in_db[2])) not in data_as_list:
                     if message and (sql_to_datetime(in_db[1]) <= datetime.datetime.now() <= sql_to_datetime(in_db[2])):
                         telebot.send_channel_message('<b>An active road closure has been canceled!❌</b>\n(<i><s>From '+datetime_to_string(in_db[1])+' to '+datetime_to_string(in_db[2])+'</s> (UTC)</i>)'+status())
                     c.execute('DELETE FROM closure WHERE id = ?',(in_db[0],))
