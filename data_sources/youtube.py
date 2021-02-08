@@ -1,4 +1,5 @@
-import requests, json, library_helper
+import requests, json
+import library_helper
 library_helper.assure_ext_library('xmltodict')
 import xmltodict
 #https://developers.google.com/youtube/v3/docs
@@ -15,4 +16,4 @@ k =  'UCn4sPeUomNGIr26bElVdDYg'
 #print(json.dumps(j,indent=2,sort_keys=True))
 #https://youtube.googleapis.com/youtube/v3/playlistItems?part=contentDetails,id,snippet,status&playlistId=UUSUu1lih2RifWkKtDOJdsBA&key=AIzaSyBVgZV4-_MzfS9oENPjuH8kX11OOv5Clzg&maxResults=20 <- does not list live stuff
 #https://www.youtube.com/feeds/videos.xml?channel_id=UCFwMITSkc1Fms6PoJoh1OUQ <- access rss feed of channel
-#print(json.dumps(xmltodict.parse(requests.get('https://www.youtube.com/feeds/videos.xml?channel_id=UCFwMITSkc1Fms6PoJoh1OUQ').content),indent=2,sort_keys=False))
+print(json.dumps(xmltodict.parse(requests.get('https://www.youtube.com/feeds/videos.xml?channel_id=UC3AeSXcVWKrJyYSwcexuf3Q').content),indent=2,sort_keys=False))

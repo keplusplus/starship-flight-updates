@@ -88,7 +88,6 @@ def regular_update():
         faa = FAAParser()
         faa.parse()
         database.append_faa(faa.tfrs)
-        database.weather_change(weather.current_weather())
     except Exception as e:
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
@@ -101,7 +100,7 @@ def main():
         time.sleep(1)
 
 if __name__ == "__main__":
-    active.start()
     regular_update()
+    active.start()
     database.status()
     main()

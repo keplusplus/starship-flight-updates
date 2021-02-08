@@ -2,8 +2,6 @@ import sqlite3, telebot, datetime
 from data_sources import weather
 
 db = r'.\starship-flight-updates\starship.db'
-conn = sqlite3.connect(db)
-c = conn.cursor()
 
 def reset_database():
     c.execute('DROP TABLE closure')
@@ -33,6 +31,8 @@ def sql_to_datetime(date: str) -> datetime.datetime:
     return datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S')
 
 def road_closure_today():   #for daily update
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     out = [False]
     for x in c.execute('SELECT begin, end, valid FROM closure WHERE DATE(begin) = ? OR DATE(end) = ?',(datetime.date.today(),datetime.date.today())).fetchall():
         if x[2]:
@@ -41,6 +41,8 @@ def road_closure_today():   #for daily update
     return out
 
 def faa_today():
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     out = [False]
     for in_db in c.execute('SELECT begin, end, toAltitude FROM faa').fetchall():
         if sql_to_datetime(in_db[0]).date() <= datetime.date.today() <= sql_to_datetime(in_db[1]).date():
@@ -54,15 +56,28 @@ def faa_today():
 def road_closure_active():  #used by thread
     conn = sqlite3.connect(db)  #needs own db because it's threaded
     c = conn.cursor()
-    if c.execute('SELECT * from closure WHERE begin <= Datetime("now") AND end > Datetime("now") ORDER BY begin AND valid = True DESC LIMIT 1').fetchone():
-        in_db = c.execute('SELECT begin, end from closure WHERE begin <= Datetime("now") AND end > Datetime("now") ORDER BY begin AND valid = True DESC LIMIT 1').fetchone()
-        return (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1]))
-    return ()
+    if c.execute('SELECT * from closure WHERE begin <= Datetime("now") AND end > Datetime("now") AND valid = True').fetchone():
+        in_db = c.execute('SELECT begin, end from closure WHERE begin <= Datetime("now") AND end > Datetime("now") AND valid = True').fetchall()
+        out = []
+        for x in in_db:
+            out.append((sql_to_datetime(x[0]),sql_to_datetime(x[1])))
+        return out
+    return []
 
-def faa_active(min = 10):  #in last min
-    pass
+def faa_active():  #in last min
+    conn = sqlite3.connect(db)  #needs own db because it's threaded
+    c = conn.cursor()
+    if c.execute('SELECT * from faa WHERE begin <= Datetime("now") AND end > Datetime("now") AND toAltitude = -1').fetchone():
+        in_db = c.execute('SELECT begin, end from faa WHERE begin <= Datetime("now") AND end > Datetime("now") AND toAltitude = -1').fetchall()
+        out = []
+        for x in in_db:
+            out.append((sql_to_datetime(x[0]),sql_to_datetime(x[1])))
+        return out
+    return []
 
 def status() -> str:    #flight or static fire
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     out = ''
     try:
         if c.execute('SELECT * FROM weather ORDER by id DESC LIMIT 1').fetchone():
@@ -90,6 +105,8 @@ def status() -> str:    #flight or static fire
     return out
 
 def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.datetime = datetime.time(10,0)):   #daily = daily update message -> does not want any changes as extra message
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     try:
         data_as_list = []   #needed to check if data in db was removed from live
         for d in data:
@@ -110,7 +127,7 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                 c.execute('UPDATE closure SET begin = ?, end = ?, valid = ? WHERE begin = ? OR end = ?',(d['begin'],d['end'],d['valid'],d['begin'],d['end']))
             else:   #not in db
                 announced = False
-                if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.now():
+                if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.now():   #TODO needs to be changed to avoid doublöe message
                     announced = True
                     if message:
                         telebot.send_channel_message('<b>A new road closuer has been scheduled!✅</b>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i>(UTC)'+status())
@@ -118,7 +135,7 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
         if data != []:
             for in_db in c.execute('SELECT id, begin,end FROM closure WHERE valid = True').fetchall():
                 if (sql_to_datetime(in_db[1]),sql_to_datetime(in_db[2])) not in data_as_list:
-                    if message and (sql_to_datetime(in_db[1]) <= datetime.datetime.now() <= sql_to_datetime(in_db[2])):
+                    if message and (sql_to_datetime(in_db[1]) <= datetime.datetime.now() <= sql_to_datetime(in_db[2])): #TODO needs to be changed to avoid doublöe message
                         telebot.send_channel_message('<b>An active road closure has been canceled!❌</b>\n(<i><s>From '+datetime_to_string(in_db[1])+' to '+datetime_to_string(in_db[2])+'</s> (UTC)</i>)'+status())
                     c.execute('DELETE FROM closure WHERE id = ?',(in_db[0],))
         conn.commit()
@@ -126,10 +143,14 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
         telebot.send_err_message('Error database-append-closure!\n\nException:\n' + str(e)) 
 
 def announce_today_closures():
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     c.execute('UPDATE closure SET announced = TRUE WHERE DATE(begin) = ? OR DATE(end) = ?',(datetime.date.today(),datetime.date.today()))
     conn.commit()
 
 def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetime.time(10,0)):
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     try:
         data_as_list = []   #needed to check if data in db was removed from live
         for d in data:
@@ -155,7 +176,7 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
             else:   #not in db
                 #new faa
                 announced = False
-                if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.now():
+                if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.now():   #TODO needs to be changed to avoid doublöe message
                     announced = True
                     if message:
                         if d['toAltitude'] == -1:
@@ -167,7 +188,7 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
         if data != []:
             for in_db in c.execute('SELECT begin, end FROM faa').fetchall():
                 if not (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) in data_as_list:
-                    if message and (sql_to_datetime(in_db[0]) <= datetime.datetime.now() <= sql_to_datetime(in_db[1])):
+                    if message and (sql_to_datetime(in_db[0]) <= datetime.datetime.now() <= sql_to_datetime(in_db[1])): #TODO needs to be changed to avoid doublöe message
                         telebot.send_channel_message('<b>An active TFR has been removed❌</b>\n(<i><s>From '+datetime_to_string(in_db[0])+' to '+datetime_to_string(in_db[1])+'</s> (UTC)</i>)'+status())
                     c.execute('DELETE FROM faa WHERE begin = ? AND end = ?',(sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])))
         conn.commit()
@@ -175,14 +196,20 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
         telebot.send_err_message('Error database-append-faa!\n\nException:\n' + str(e))
 
 def announce_today_faas():
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     c.execute('UPDATE faa SET announced = TRUE WHERE DATE(begin) = ? OR DATE(end) = ?',(datetime.date.today(),datetime.date.today()))
     conn.commit()
 
 def append_weather(w):
+    conn = sqlite3.connect(db)  #needs own db because it's threaded
+    c = conn.cursor()
     c.execute('INSERT INTO weather(weatherid,windspeed, timestamp) VALUES(?,?,?)',(w['weather'][0]['id'],w['wind_speed'],datetime.datetime.now()))
     conn.commit()
 
-def weather_change(w):
+def weather_change(w):  #used by thread
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     try:
         if c.execute('SELECT * FROM weather ORDER by id DESC LIMIT 1').fetchone():
             in_db = c.execute('SELECT weatherid,windspeed FROM weather ORDER by id DESC LIMIT 1').fetchone()
