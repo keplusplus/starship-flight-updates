@@ -1,3 +1,5 @@
+from data_sources import library_helper
+library_helper.assure_ext_library('BeautifulSoup4')
 from bs4 import BeautifulSoup
 import requests
 import locale

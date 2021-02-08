@@ -1,4 +1,4 @@
-import database,telebot,datetime,time, schedule
+import database,telebot,datetime,time, schedule, active
 from data_sources import weather
 from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
@@ -88,17 +88,19 @@ def regular_update():
         faa = FAAParser()
         faa.parse()
         database.append_faa(faa.tfrs)
-        database.weather_change(weather.current_weather())
     except Exception as e:
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
 def main():
     schedule.every().day.at("12:55").do(daily_update)
     schedule.every(15).to(25).minutes.do(regular_update)
-    
+    print('>starting loop')
     while 1:
         schedule.run_pending()
         time.sleep(1)
 
 if __name__ == "__main__":
+    regular_update()
+    active.start()
+    database.status()
     main()
