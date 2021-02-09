@@ -83,11 +83,12 @@ def regular_update():
     #try:
     ccp = CameronCountyParser()
     ccp.parse()
-    ccp.closures.append({'begin': datetime.datetime(2021,2,9,11,50), 'end': datetime.datetime(2021,2,9,11,51),'valid': True})
+    ccp.closures.append({'begin': datetime.datetime(2021,2,9,12,49), 'end': datetime.datetime(2021,2,9,12,51),'valid': True})
     database.append_cameroncounty(ccp.closures)
 
     faa = FAAParser()
     faa.parse()
+    faa.tfrs.append({'begin': datetime.datetime(2021,2,9,18,48), 'end': datetime.datetime(2021,2,9,18,50),'fromSurface':True,'toAltitude':-1})
     database.append_faa(faa.tfrs)
     #except Exception as e:
     #    telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
@@ -99,9 +100,6 @@ def main():
     while 1:
         schedule.run_pending()
         time.sleep(1)
-
-#testing
-#database.append_cameroncounty([{'begin': datetime.datetime(2021,2,9,16,55), 'end': datetime.datetime(2021,2,9,17,59),'valid': True}])
 
 if __name__ == "__main__":
     regular_update()

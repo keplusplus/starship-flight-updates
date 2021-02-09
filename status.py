@@ -23,6 +23,7 @@ class Status:
         return out
 
     def value_change_status(self, conn = None) -> str:   #called when new/change/remove closure/tfr
+        return ''
         flight = Weather().weather_text(Weather().current_weather())[1] and Weather().wind_text(Weather().current_weather())[1] and database.road_closure_today(conn)[0] and database.faa_today(conn)[0]
         static = database.road_closure_today(conn)[0]
         out = ''
@@ -43,6 +44,7 @@ class Status:
         return out
     
     def active_change(self, currently_active) -> str:
+        return ''
         if currently_active['closure'] != []:
             return '\n<i>Static fire or wdr are now possible</i>❕'
         elif currently_active['closure'] != [] and currently_active['tfr'] != []:

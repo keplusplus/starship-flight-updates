@@ -5,8 +5,7 @@ from status import Status
 
 currently_active = {'closure':[],'tfr':[]}
 
-def manage_closures(inlastmin = 5*60):
-    print(database.road_closure_active())
+def manage_closures(inlastmin = 20):
     if database.road_closure_active() != []:
         for x in database.road_closure_active():
             if x not in currently_active['closure']:
@@ -32,12 +31,13 @@ def manage_tfrs(inlastmin = 20):
 
 def main(): #this should tell when closure/tfr is now or no longer active
     while True:
+        print(currently_active)
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change()
             print('should listen on apis')
         manage_closures()
         manage_tfrs()   
-        time.sleep(20)
+        time.sleep(5)
 
 def start():
     Thread(target=main).start()
