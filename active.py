@@ -1,9 +1,11 @@
 import database, time, telebot, datetime
 from data_sources.weather import Weather
+from data_sources.twitter import Twitter
 from threading import Thread
 from status import Status
 
 currently_active = {'closure':[],'tfr':[]}
+twitter = None
 
 def manage_closures(inlastmin = 20):
     if database.road_closure_active() != []:
@@ -30,14 +32,17 @@ def manage_tfrs(inlastmin = 20):
             telebot.send_channel_message('TFR (unlimited) no longer active❗\n<i><s>(From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' UTC)</s></i>'+Status().active_change(currently_active))
 
 def main(): #this should tell when closure/tfr is now or no longer active
+    #twitter = Twitter(1440)
+    #print(twitter.add_twitter_account('s_fliens'))
     while True:
         print(currently_active)
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change()
             print('should listen on apis')
         manage_closures()
-        manage_tfrs()   
-        time.sleep(5)
+        manage_tfrs()
+        #print(twitter.update())
+        time.sleep(20)
 
 def start():
     Thread(target=main).start()

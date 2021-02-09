@@ -24,7 +24,8 @@ def daily_update(): #every boca morning
             return
         print('>collected & waiting')
         #make sure the message is sent exactly at 13:00
-        time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
+        if (datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds() > 0:
+            time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
         flight = (Weather().weather_text(w)[1] and Weather().wind_text(w)[1] and bool(database.road_closure_today()[0]) and database.faa_today()[0])
         staticfire = bool(database.road_closure_today()[0])
         #Header & Roadclosure
@@ -83,12 +84,10 @@ def regular_update():
     try:
         ccp = CameronCountyParser()
         ccp.parse()
-        #ccp.closures.append({'begin': datetime.datetime(2021,2,9,12,49), 'end': datetime.datetime(2021,2,9,12,51),'valid': True})
         database.append_cameroncounty(ccp.closures)
 
         faa = FAAParser()
         faa.parse()
-        #faa.tfrs.append({'begin': datetime.datetime(2021,2,9,18,48), 'end': datetime.datetime(2021,2,9,18,50),'fromSurface':True,'toAltitude':-1})
         database.append_faa(faa.tfrs)
     except Exception as e:
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
