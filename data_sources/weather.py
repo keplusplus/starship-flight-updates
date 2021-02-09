@@ -6,12 +6,12 @@ import requests, json, datetime, telebot
 
 class Weather:
     APIKEY = 'a973723427ca8acbc74e7c47075db6fa'
-    last_current_weather = {'time':datetime.datetime.min,'data':{}}
+    _last_current_weather = {'time':datetime.datetime.min,'data':{}}
 
     def __init__(self):
         pass
 
-    def today_forecast(self, force = False):
+    def today_forecast(self):
         try:
             r = requests.get('http://api.openweathermap.org/data/2.5/onecall',{'lat':25.997083229714256,'lon':-97.15597286864448,'exclude':'current,minutely,hourly,alerts','units':'metric','appid':Weather.APIKEY}).json()['daily'][0]
             return {'temp':r['temp']['day'],'feels_like':r['feels_like']['day'],'pressure':r['pressure'],'humidity':r['humidity'],'wind_speed':round(r['wind_speed']*3.6,2),'wind_deg':r['wind_deg'],'weather':r['weather'][0]}
@@ -21,11 +21,11 @@ class Weather:
 
     def current_weather(self, sincelastmins = 20):
         try:
-            if self.last_current_weather['time'] < datetime.datetime.now()-datetime.timedelta(minutes=sincelastmins):
+            if self._last_current_weather['time'] < datetime.datetime.now()-datetime.timedelta(minutes=sincelastmins):
                 r = requests.get('http://api.openweathermap.org/data/2.5/onecall',{'lat':25.997083229714256,'lon':-97.15597286864448,'exclude':'daily,minutely,hourly,alerts','units':'metric','appid':self.APIKEY}).json()['current']
-                self.last_current_weather['time'] = datetime.datetime.now()
-                self.last_current_weather['data'] = {'temp':r['temp'],'feels_like':r['feels_like'],'pressure':r['pressure'],'humidity':r['humidity'],'wind_speed':round(r['wind_speed']*3.6,2),'wind_deg':r['wind_deg'],'weather':r['weather'][0]}
-            return self.last_current_weather['data']
+                self._last_current_weather['time'] = datetime.datetime.now()
+                self._last_current_weather['data'] = {'temp':r['temp'],'feels_like':r['feels_like'],'pressure':r['pressure'],'humidity':r['humidity'],'wind_speed':round(r['wind_speed']*3.6,2),'wind_deg':r['wind_deg'],'weather':r['weather'][0]}
+            return self._last_current_weather['data']
         except Exception as e:
             telebot.send_err_message('Error Weather-current-weather!\n\nException:\n' + str(e))
             return {}
@@ -33,13 +33,13 @@ class Weather:
     def wind_text(self,w:dict, wind_limit = 32):
         wind_speed = w['wind_speed']
         if wind_speed > wind_limit:  #windspeed > 20mph
-            return ('Too windy', False)
+            return ('Too windy ('+str(w['wind_speed'])+' km/h, max:30km/h)', False)
         elif wind_speed > wind_limit/2:
-            return ('Windy', True)
+            return ('Windy ('+str(w['wind_speed'])+' km/h)', True)
         elif wind_speed > 0:
-            return ('Low wind', True)
+            return ('Low wind ('+str(w['wind_speed'])+' km/h)', True)
         else:
-            return ('No wind', True)
+            return ('No wind ('+str(w['wind_speed'])+' km/h)', True)
 
     def weather_text(self,w:dict):
         weather_id = str(w['weather']['id'])[0]
@@ -51,8 +51,8 @@ class Weather:
 
     def weather_change(self, w = None):
         try:
-            if self.last_current_weather['data'] != {}:
-                last = self.last_current_weather['data']
+            if self._last_current_weather['data'] != {}:
+                last = self._last_current_weather['data']
                 if w is None: w = self.current_weather()
                 if self.weather_text(w)[1] != self.weather_text(last)[1]:
                     if self.weather_text(w)[1]:
