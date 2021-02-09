@@ -13,10 +13,8 @@ class Twitter:
             'Authorization': 'Bearer ' + env['TWITTER_BEARER_TOKEN']
         }
     except KeyError as e:
-        print('Cannot create Twitter object!')
         print(e)
-        print('Check you .env file!')
-        exit(1)
+        print('Check Twitter credentials in your .env file!')
     
     def __req_json(self, endpoint):
         response = requests.get(endpoint, headers=Twitter.headers)
@@ -26,7 +24,7 @@ class Twitter:
             print('Requesting Twitter API returned an Error!')
             print('Check your bearer token in .env!')
             print(response.json())
-            exit(1)
+            return { 'meta': { 'result_count': 0 } }
 
     def __init__(self, timespan):
         self.accounts = []
