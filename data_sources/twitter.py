@@ -5,7 +5,7 @@ from requests.models import Response
 from data_sources import dotenv_parser
 
 class Twitter:
-    tweet_endpoint = 'https://api.twitter.com/2/users/:id/tweets'
+    tweet_endpoint = 'https://api.twitter.com/2/users/:id/tweets?exclude=retweets'
     lookup_endpoint = 'https://api.twitter.com/2/users/by'
     env = dotenv_parser.get_env('.env')
     try:
@@ -17,6 +17,16 @@ class Twitter:
         print(e)
         print('Check you .env file!')
         exit(1)
+    
+    def __req_json(self, endpoint):
+        response = requests.get(endpoint, headers=Twitter.headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print('Requesting Twitter API returned an Error!')
+            print('Check your bearer token in .env!')
+            print(response.json())
+            exit(1)
 
     def __init__(self, timespan):
         self.accounts = []
@@ -24,7 +34,7 @@ class Twitter:
         self.timespan = timespan
 
     def __get_account(self, username):
-        response = requests.get(Twitter.lookup_endpoint + '?usernames=' + str.lower(username), headers=Twitter.headers).json()
+        response = self.__req_json(Twitter.lookup_endpoint + '?usernames=' + str.lower(username))
         try:
             return response['data'][0]
         except KeyError:
@@ -33,11 +43,11 @@ class Twitter:
     def __get_tweets(self, user_id):
         try:
             latest = self.latest_tweets[user_id]
-            response = requests.get(Twitter.tweet_endpoint.replace(':id', user_id) + '?since_id=' + latest, headers=Twitter.headers).json()
+            response = self.__req_json(Twitter.tweet_endpoint.replace(':id', user_id) + '&since_id=' + latest)
         except KeyError:
             dt = datetime.utcnow() - timedelta(minutes=self.timespan)
             dtstr = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-            response = requests.get(Twitter.tweet_endpoint.replace(':id', user_id) + '?start_time=' + dtstr, headers=Twitter.headers).json()
+            response = self.__req_json(Twitter.tweet_endpoint.replace(':id', user_id) + '&start_time=' + dtstr)
 
         if response['meta']['result_count'] > 0:
             self.latest_tweets[user_id] = response['meta']['newest_id']
@@ -55,3 +65,10 @@ class Twitter:
         account = self.__get_account(username)
         while account in self.accounts:
             self.accounts.remove(account)
+
+    def update(self):
+        update = {}
+        for account in self.accounts:
+            tweets = self.__get_tweets(account['id'])
+            update[account['username']] = tweets
+        return update
