@@ -22,7 +22,6 @@ class Weather:
     def current_weather(self, sincelastmins = 20):
         try:
             if self._last_current_weather['time'] < datetime.datetime.now()-datetime.timedelta(minutes=sincelastmins):
-                print('fresh data')
                 r = requests.get('http://api.openweathermap.org/data/2.5/onecall',{'lat':25.997083229714256,'lon':-97.15597286864448,'exclude':'daily,minutely,hourly,alerts','units':'metric','appid':self.APIKEY}).json()['current']
                 self._last_current_weather['time'] = datetime.datetime.now()
                 self._last_current_weather['data'] = {'temp':r['temp'],'feels_like':r['feels_like'],'pressure':r['pressure'],'humidity':r['humidity'],'wind_speed':round(r['wind_speed']*3.6,2),'wind_deg':r['wind_deg'],'weather':r['weather'][0]}

@@ -83,7 +83,7 @@ def regular_update():
     #try:
     ccp = CameronCountyParser()
     ccp.parse()
-    ccp.closures.append({'begin': datetime.datetime(2021,2,9,16,55), 'end': datetime.datetime(2021,2,9,17,59),'valid': True})
+    ccp.closures.append({'begin': datetime.datetime(2021,2,9,11,50), 'end': datetime.datetime(2021,2,9,11,51),'valid': True})
     database.append_cameroncounty(ccp.closures)
 
     faa = FAAParser()

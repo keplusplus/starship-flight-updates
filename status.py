@@ -22,9 +22,9 @@ class Status:
             out+='Nothing big happening on current data❗\n'
         return out
 
-    def value_change_status(self) -> str:   #called when new/change/remove closure/tfr
-        flight = Weather().weather_text(Weather().current_weather())[1] and Weather().wind_text(Weather().current_weather())[1] and database.road_closure_today()[0] and database.faa_today()[0]
-        static = database.road_closure_today()[0]
+    def value_change_status(self, conn = None) -> str:   #called when new/change/remove closure/tfr
+        flight = Weather().weather_text(Weather().current_weather())[1] and Weather().wind_text(Weather().current_weather())[1] and database.road_closure_today(conn)[0] and database.faa_today(conn)[0]
+        static = database.road_closure_today(conn)[0]
         out = ''
         if Status()._last_status['flight'] is not None:
             if Status()._last_status['flight'] != flight:
