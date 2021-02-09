@@ -80,18 +80,18 @@ def daily_update(): #every boca morning
 
 def regular_update():
     print('>updating')
-    #try:
-    ccp = CameronCountyParser()
-    ccp.parse()
-    ccp.closures.append({'begin': datetime.datetime(2021,2,9,12,49), 'end': datetime.datetime(2021,2,9,12,51),'valid': True})
-    database.append_cameroncounty(ccp.closures)
+    try:
+        ccp = CameronCountyParser()
+        ccp.parse()
+        #ccp.closures.append({'begin': datetime.datetime(2021,2,9,12,49), 'end': datetime.datetime(2021,2,9,12,51),'valid': True})
+        database.append_cameroncounty(ccp.closures)
 
-    faa = FAAParser()
-    faa.parse()
-    faa.tfrs.append({'begin': datetime.datetime(2021,2,9,18,48), 'end': datetime.datetime(2021,2,9,18,50),'fromSurface':True,'toAltitude':-1})
-    database.append_faa(faa.tfrs)
-    #except Exception as e:
-    #    telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
+        faa = FAAParser()
+        faa.parse()
+        #faa.tfrs.append({'begin': datetime.datetime(2021,2,9,18,48), 'end': datetime.datetime(2021,2,9,18,50),'fromSurface':True,'toAltitude':-1})
+        database.append_faa(faa.tfrs)
+    except Exception as e:
+        telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
 def main():
     schedule.every().day.at("12:55").do(daily_update)
