@@ -4,6 +4,7 @@ import database
 class Status:
 
     _last_status = {'flight':None,'static':None}
+    _last_active_status = {'flight':None,'static':None}
 
     def __init__(self):
         pass
@@ -44,18 +45,20 @@ class Status:
         return out
     
     def active_change(self, currently_active) -> str:
-        return ''
-        if currently_active['closure'] != []:
-            return '\n<i>Static fire or wdr are now possible</i>❕'
-        elif currently_active['closure'] != [] and currently_active['tfr'] != []:
-            if not Weather().weather_text(Weather().current_weather())[1]:
-                return '\n<i>Flight is not possible due to weather❗\n'+Weather().weather_text(Weather().current_weather())[0]+'</i>❕'
-            elif not Weather().wind_text(Weather().current_weather())[1]:
-                return '\n<i>Flight is not possible due to wind❗\n'+Weather().wind_text(Weather().current_weather())[0]+'</i>❕'
-            elif not Weather().wind_text(Weather().current_weather())[1] and not Weather().weather_text(Weather().current_weather())[1]:
-                return '\n<i>Flight is not possible due to weather and wind❗\nWeather: '+Weather().weather_text(Weather().current_weather())[0]+'\nWind:'+Weather().wind_text(Weather().current_weather())[0]+'</i>'
+        flight, static = (Weather().wind_text(Weather().current_weather())[1] and Weather().wind_text(Weather().current_weather())[1] and (currently_active['closure'] != []) and (currently_active['tfr'] != [])), (currently_active['closure'] != [])
+        if Status()._last_active_status['flight'] != flight and Status()._last_active_status['static'] != static:
+            if currently_active['closure'] != [] and currently_active['tfr'] != []:
+                if not Weather().weather_text(Weather().current_weather())[1]:
+                    return '\n<u>Flight is not possible due to weather!</u>❌<i>\n(Weather: '+Weather().weather_text(Weather().current_weather())[0]+')</i>'
+                elif not Weather().wind_text(Weather().current_weather())[1]:
+                    return '\n<u>Flight is not possible due to wind!</u>❌<i>\n(Wind: '+Weather().wind_text(Weather().current_weather())[0]+')</i>'
+                elif not Weather().wind_text(Weather().current_weather())[1] and not Weather().weather_text(Weather().current_weather())[1]:
+                    return '\n<u>Flight is not possible due to weather and wind!</u>❌<i>\n(Weather: '+Weather().weather_text(Weather().current_weather())[0]+')\n(Wind: '+Weather().wind_text(Weather().current_weather())[0]+')</i>'
+                else:
+                    return '\n<u><b>Flight is now possible</b></u>🚀✅'
+            elif currently_active['closure'] != [] and currently_active['tfr'] == []:
+                return '\n<u>Static fire or wdr are now possible!</u>'
             else:
-                return '\n<u><b>Flight is now possible</b></u>🚀✅'
-        elif currently_active['closure'] == [] and currently_active['tfr'] == []:
-            return '\n<i>Nothing is possible anymore</i>❗'
+                return '\n<u>Nothing is currently possible!❌</u>'
+        Status()._last_active_status['flight'], Status()._last_active_status['static'] = flight, static
         return ''
