@@ -9,7 +9,7 @@ def send_message(chatid, message, disable_link_preview = False):
     resp =  requests.post('https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(chatid) + '&parse_mode=HTML',{'text':message,'disable_web_page_preview':disable_link_preview}).json()
     if not resp['ok']:
         print(resp)
-        send_err_message(resp)
+        send_err_message(resp+' message:'+message)
     return resp
 
 def send_photo(chatid, img, caption=''):
@@ -24,7 +24,7 @@ def send_photo(chatid, img, caption=''):
         resp = requests.post('https://api.telegram.org/bot'+ bot_token + '/sendPhoto?chat_id='+str(chatid)+ '&parse_mode=HTML', files={'photo': open(img, 'rb')}).json()
     if not resp['ok']:
         print(resp)
-        send_err_message(resp)
+        send_err_message(resp+' caption:'+caption)
     return resp
 
 def send_channel_message(message, disable_link_preview = False):
