@@ -1,15 +1,15 @@
 import sqlite3, telebot, datetime
-from data_sources import weather
 
 db = r'.\starship-flight-updates\starship.db'
 
 def reset_database():
+    conn = sqlite3.connect(db)
+    c = conn.cursor()
     c.execute('DROP TABLE closure')
     c.execute("CREATE TABLE 'closure' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'begin' TIMESTAMP NOT NULL,'end' TIMESTAMP NOT NULL,'valid' BOOL, 'announced' BOOL DEFAULT FALSE);")
     c.execute('DROP TABLE faa')
     c.execute("CREATE TABLE 'faa' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'begin' TIMESTAMP NOT NULL,'end' TIMESTAMP NOT NULL,'fromSurface' BOOL, toAltitude INTEGER, 'announced' BOOL DEFAULT FALSE);")
     c.execute('DROP TABLE weather')
-    c.execute("CREATE TABLE 'weather' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'weatherid' INTEGER NOT NULL,'windspeed' FLOAT NOT NULL,'timestamp' TIMESTAMP);")
     c.execute('DROP TABLE status')
     c.execute("CREATE TABLE 'status' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'flight' BOOL NOT NULL,'static' BOOL NOT NULL,'timestamp' TIMESTAMP);")
     conn.commit()
@@ -76,33 +76,34 @@ def faa_active():  #in last min
     return []
 
 def status() -> str:    #flight or static fire
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    out = ''
-    try:
-        if c.execute('SELECT * FROM weather ORDER by id DESC LIMIT 1').fetchone():
-            weather_in_db = c.execute('SELECT weatherid,windspeed FROM weather ORDER by id DESC LIMIT 1').fetchone()
-            flight = (weather.weather(weather_in_db[0]) and weather.wind(weather_in_db[1]) and road_closure_today()[0] and faa_today()[0])
-            static = road_closure_today()[0]
-            if c.execute('SELECT * FROM status ORDER by id DESC LIMIT 1').fetchone():
-                status_in_db = c.execute('SELECT flight,Static FROM status ORDER by id DESC LIMIT 1').fetchone()
-                if status_in_db[0] != flight:
-                    if flight:
-                        out = '\n<u><b>Flight is now possible</b></u>🚀✅\n'
-                    else:
-                        out = '\n<u><b>Flight is no longer possible</b></u>🚀❌\n'
-                if status_in_db[0] != static:
-                    if static:
-                        out+= '<i>Static fire or wdr are still possible</i>'
-                    else:
-                        return '<i>Nothing is possible anymore</i>'
-                if status_in_db[0] == flight and status_in_db[0] == static:
-                    return '\n[no status change, flight: '+str(flight)+'|staticfire: '+str(static)+']'
-            c.execute('INSERT INTO status(flight,static,timestamp) VALUES(?,?,?)',(flight,static,datetime.datetime.now()))
-            conn.commit()
-    except Exception as e:
-        telebot.send_err_message('Error database-status!\n\nException:\n' + str(e))
-    return out
+    return ''
+    # conn = sqlite3.connect(db)
+    # c = conn.cursor()
+    # out = ''
+    # try:
+    #     if c.execute('SELECT * FROM weather ORDER by id DESC LIMIT 1').fetchone():
+    #         weather_in_db = c.execute('SELECT weatherid,windspeed FROM weather ORDER by id DESC LIMIT 1').fetchone()
+    #         flight = (weather.weather(weather_in_db[0]) and weather.wind(weather_in_db[1]) and road_closure_today()[0] and faa_today()[0])
+    #         static = road_closure_today()[0]
+    #         if c.execute('SELECT * FROM status ORDER by id DESC LIMIT 1').fetchone():
+    #             status_in_db = c.execute('SELECT flight,Static FROM status ORDER by id DESC LIMIT 1').fetchone()
+    #             if status_in_db[0] != flight:
+    #                 if flight:
+    #                     out = '\n<u><b>Flight is now possible</b></u>🚀✅\n'
+    #                 else:
+    #                     out = '\n<u><b>Flight is no longer possible</b></u>🚀❌\n'
+    #             if status_in_db[0] != static:
+    #                 if static:
+    #                     out+= '<i>Static fire or wdr are still possible</i>'
+    #                 else:
+    #                     return '<i>Nothing is possible anymore</i>'
+    #             if status_in_db[0] == flight and status_in_db[0] == static:
+    #                 return '\n[no status change, flight: '+str(flight)+'|staticfire: '+str(static)+']'
+    #         c.execute('INSERT INTO status(flight,static,timestamp) VALUES(?,?,?)',(flight,static,datetime.datetime.now()))
+    #         conn.commit()
+    # except Exception as e:
+    #     telebot.send_err_message('Error database-status!\n\nException:\n' + str(e))
+    # return out
 
 def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.datetime = datetime.time(10,0)):   #daily = daily update message -> does not want any changes as extra message
     conn = sqlite3.connect(db)
@@ -171,7 +172,7 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
                             was = str(in_db[3])
                             if in_db[3] == -1:
                                 was = 'unlimited'
-                            telebot.send_channel_message('<b>TFR max altitude has changed❌</b>\nMax alt. is now '+srt(d['toAltitude'])+'ft (was '+was+' ft), flight is not possible!\n<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' (UTC)</i>'+status())
+                            telebot.send_channel_message('<b>TFR max altitude has changed❌</b>\nMax alt. is now '+str(d['toAltitude'])+'ft (was '+was+' ft), flight is not possible!\n<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' (UTC)</i>'+status())
                 c.execute('UPDATE faa SET fromSurface = ?, toAltitude = ? WHERE begin = ? AND end = ?',(d['fromSurface'],d['toAltitude'],d['begin'], d['end']))
             else:   #not in db
                 #new faa
@@ -200,32 +201,6 @@ def announce_today_faas():
     c = conn.cursor()
     c.execute('UPDATE faa SET announced = TRUE WHERE DATE(begin) = ? OR DATE(end) = ?',(datetime.date.today(),datetime.date.today()))
     conn.commit()
-
-def append_weather(w):
-    conn = sqlite3.connect(db)  #needs own db because it's threaded
-    c = conn.cursor()
-    c.execute('INSERT INTO weather(weatherid,windspeed, timestamp) VALUES(?,?,?)',(w['weather'][0]['id'],w['wind_speed'],datetime.datetime.now()))
-    conn.commit()
-
-def weather_change(w):  #used by thread
-    conn = sqlite3.connect(db)
-    c = conn.cursor()
-    try:
-        if c.execute('SELECT * FROM weather ORDER by id DESC LIMIT 1').fetchone():
-            in_db = c.execute('SELECT weatherid,windspeed FROM weather ORDER by id DESC LIMIT 1').fetchone()
-            if weather.weather_text(w)[1] != weather.weather(in_db[0]):
-                if weather.weather_text(w)[1]:
-                    telebot.send_channel_message('<b>Weather has changed:</b>✅\n<i>'+weather.weather_text(w)[0]+'</i>'+status())
-                else:
-                    telebot.send_channel_message('<b>Weather has changed:</b>❌\n<i>'+weather.weather_text(w)[0]+'</i>'+status())
-            if weather.wind_text(w)[1] != weather.wind(in_db[1]):
-                if weather.wind_text(w)[1]:
-                    telebot.send_channel_message('<b>Wind has changed:</b>✅\n<i>'+weather.wind_text(w)[0]+' ('+str(w['wind_speed'])+' km/h)</i>'+status())
-                else:
-                    telebot.send_channel_message('<b>Wind has changed:</b>❌\n<i>'+weather.wind_text(w)[0]+' ('+str(w['wind_speed'])+' km/h, max:30km/h)</i>'+status())
-        append_weather(w)
-    except Exception as e:
-        telebot.send_err_message('Error database-weather-change!\n\nException:\n' + str(e))
 
 if __name__ == '__main__':
     #reset_database()

@@ -1,5 +1,5 @@
 import database, time, telebot, datetime
-from data_sources import weather
+from data_sources.weather import Weather
 from threading import Thread
 
 currently_active = {'closure':[],'tfr':[]}
@@ -40,7 +40,7 @@ def manage_tfrs():
 def main(): #this should tell when closure/tfr is now or no longer active
     while True:
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
-            database.weather_change(weather.current_weather())
+            Weather().weather_change()
             print('should listen on apis')
         manage_closures()
         manage_tfrs()   
