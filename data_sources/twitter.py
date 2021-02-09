@@ -32,6 +32,7 @@ class Twitter:
         self.accounts = []
         self.latest_tweets = {}
         self.timespan = timespan
+        self.init_time = datetime.utcnow()
 
     def __get_account(self, username):
         response = self.__req_json(Twitter.lookup_endpoint + '?usernames=' + str.lower(username))
@@ -45,7 +46,7 @@ class Twitter:
             latest = self.latest_tweets[user_id]
             response = self.__req_json(Twitter.tweet_endpoint.replace(':id', user_id) + '&since_id=' + latest)
         except KeyError:
-            dt = datetime.utcnow() - timedelta(minutes=self.timespan)
+            dt = self.init_time - timedelta(minutes=self.timespan)
             dtstr = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             response = self.__req_json(Twitter.tweet_endpoint.replace(':id', user_id) + '&start_time=' + dtstr)
 
