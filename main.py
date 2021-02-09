@@ -1,5 +1,5 @@
 import database,telebot,datetime,time, schedule, active
-from data_sources import weather
+from data_sources.weather import Weather
 from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
 #Gather current data -> every morning
@@ -14,17 +14,17 @@ def daily_update(): #every boca morning
         ccp = CameronCountyParser()
         ccp.parse()
         database.append_cameroncounty(ccp.closures,False)
-
         faa = FAAParser()
         faa.parse()
         database.append_faa(faa.tfrs,False)
-
-        w = weather.today_forecast()
-        database.append_weather(w)
+        w = Weather().today_forecast()
+        if w == {}:
+            telebot.send_err_message('main daily weather Error (empty)')
+            return
         print('>collected & waiting')
         #make sure the message is sent exactly at 13:00
-        time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
-        flight = (weather.weather_text(w)[1] and weather.wind_text(w)[1] and bool(database.road_closure_today()[0]) and database.faa_today()[0])
+        #time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
+        flight = (Weather().weather_text(w)[1] and Weather().wind_text(w)[1] and bool(database.road_closure_today()[0]) and database.faa_today()[0])
         staticfire = bool(database.road_closure_today()[0])
         #Header & Roadclosure
         out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗨𝗽𝗱𝗮𝘁𝗲</b><i> (local time '+database.datetime_to_string(datetime.datetime.now()-datetime.timedelta(hours=7))+')</i>\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
@@ -52,16 +52,16 @@ def daily_update(): #every boca morning
                 out+='<i>from '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' (max alt.: '+str(x[2])+' ft)</i>\n'
         #Weather
         out+='<a href="https://openweathermap.org/city/4720060"><b>Weather today:</b></a>'
-        if weather.weather_text(w)[1]:
-            out+='✅\n'+weather.weather_text(w)[0]+'\n'
+        if Weather().weather_text(w)[1]:
+            out+='✅\n'+Weather().weather_text(w)[0]+'\n'
         else:
-            out+='❌\n'+weather.weather_text(w)[0]+'\n'
+            out+='❌\n'+Weather().weather_text(w)[0]+'\n'
         #Wind
         out+='<a href="https://openweathermap.org/city/4720060"><b>Wind:</b></a>'
-        if weather.wind_text(w)[1]:
-            out+='✅\n'+weather.wind_text(w)[0]+' ('+str(w['wind_speed'])+' km/h)\n'
+        if Weather().wind_text(w)[1]:
+            out+='✅\n'+Weather().wind_text(w)[0]+' ('+str(w['wind_speed'])+' km/h)\n'
         else:
-            out+='❌\n'+weather.wind_text(w)[0]+' ('+str(w['wind_speed'])+' km/h, max:30km/h)\n'
+            out+='❌\n'+Weather().wind_text(w)[0]+' ('+str(w['wind_speed'])+' km/h, max:30km/h)\n'
         #Flight Message
         if flight:
             out+='\n<u><b>Flight is possible today</b></u>🚀✅\n'
