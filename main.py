@@ -97,7 +97,7 @@ def regular_update():
 def main():
     schedule.every().day.at("12:55").do(daily_update)
     schedule.every(15).to(25).minutes.do(regular_update)
-    print('>starting loop')
+    print('>starting main-main loop')
     while 1:
         schedule.run_pending()
         time.sleep(1)

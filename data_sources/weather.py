@@ -3,7 +3,7 @@
 #25.997083229714256, -97.15597286864448
 #http://history.openweathermap.org/data/2.5/history/city?lat={lat}&lon={lon}&type=hour&start={start}&end={end}&appid={API key}
 import requests, json, datetime, telebot
-from status import Status
+import status
 
 class Weather:
     APIKEY = 'a973723427ca8acbc74e7c47075db6fa'
@@ -57,20 +57,20 @@ class Weather:
             if w is None: w = self.current_weather()
             if self.weather_text(w)[1] != self.weather_text(last)[1]:
                 if self.weather_text(w)[1]:
-                    telebot.send_channel_message('<b>Weather has changed:</b>\n<i>'+self.weather_text(w)[0]+'</i>'+Status().active_change(currently_active))
+                    telebot.send_channel_message('<b>Weather has changed:</b>\n<i>'+self.weather_text(w)[0]+'</i>'+status.Status().active_change(currently_active))
                 else:
-                    telebot.send_channel_message('<b>Weather has changed:</b>\n<i>'+self.weather_text(w)[0]+'</i>'+Status().active_change(currently_active))
+                    telebot.send_channel_message('<b>Weather has changed:</b>\n<i>'+self.weather_text(w)[0]+'</i>'+status.Status().active_change(currently_active))
             elif self.wind_text(w)[1] != self.wind_text(last)[1]:
                 if self.wind_text(w)[1]:
-                    telebot.send_channel_message('<b>Wind has changed:</b>\n<i>'+self.wind_text(w)[0]+'</i>'+Status().active_change(currently_active))
+                    telebot.send_channel_message('<b>Wind has changed:</b>\n<i>'+self.wind_text(w)[0]+'</i>'+status.Status().active_change(currently_active))
                 else:
-                    telebot.send_channel_message('<b>Wind has changed:</b>\n<i>'+self.wind_text(w)[0]+'</i>'+Status().active_change(currently_active))
+                    telebot.send_channel_message('<b>Wind has changed:</b>\n<i>'+self.wind_text(w)[0]+'</i>'+status.Status().active_change(currently_active))
             elif self.weather_text(w)[1] != self.weather_text(last)[1] and self.wind_text(w)[1] != self.wind_text(last)[1]:
                 out = '<b>Weather and wind have changed:</b><i>\nWeather: '
                 out+= ('✅' if self.weather_text(w)[1]  else '❌')
                 out+= ' '+self.weather_text(w)[0]+'\nWind: '
                 out+= ('✅' if self.wind_text(w)[1]  else '❌')
                 out+= ' '+self.wind_text(w)[0]+'</i>'
-                telebot.send_channel_message(out+Status().active_change(currently_active))
+                telebot.send_channel_message(out+status.Status().active_change(currently_active))
         except Exception as e:
             telebot.send_err_message('Error Weather-weather-change!\n\nException:\n' + str(e))
