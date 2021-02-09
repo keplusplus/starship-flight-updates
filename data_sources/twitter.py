@@ -33,6 +33,7 @@ class Twitter:
         self.latest_tweets = {}
         self.timespan = timespan
         self.init_time = datetime.utcnow()
+        self.last_update = {}
 
     def __get_account(self, username):
         response = self.__req_json(Twitter.lookup_endpoint + '?usernames=' + str.lower(username))
@@ -72,4 +73,5 @@ class Twitter:
         for account in self.accounts:
             tweets = self.__get_tweets(account['id'])
             update[account['username']] = tweets
+        self.last_update = update
         return update
