@@ -1,13 +1,10 @@
 import database, time, telebot, datetime
 from data_sources.weather import Weather
-#from data_sources.twitter import Twitter
+from data_sources import twitter 
 from threading import Thread
 from status import Status
 
 currently_active = {'closure':[],'tfr':[]}
-
-twitter = None
-
 
 def manage_closures(inlastmin = 20):
     if database.road_closure_active() != []:
@@ -33,22 +30,39 @@ def manage_tfrs(inlastmin = 20):
             currently_active['tfr'].remove(x)
             telebot.send_channel_message('<b>TFR (unlimited) no longer active!</b>\n(<i><s>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+'</s> UTC</i>)'+Status().active_change(currently_active))
 
-def manage_twitter():
-    #print(twitter.update())
-    pass    #TODO
+def twitter_filter(text:str) -> bool:
+    params = ['flight test']
+    for p in params:
+        if p in text:
+            return True
+    return False
+
+def manage_twitter(twit):
+    resp = twit.update()
+    for x in resp:
+        for tweet in resp[x]:
+            print(tweet)
+            link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
+            if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
+                if twitter_filter(tweet['text']):
+                    telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twitter.Twitter().names[x]+'</b></u></a>')
+            else:
+                telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twitter.Twitter().names[x]+'</b></u></a>')
 
 def manage_youtube():
     pass    #TODO
 
 def main():
     print('>starting active-main loop')
-    #twitter = Twitter(1440)
-    #print(twitter.add_twitter_account('s_fliens'))
+    twit = twitter.Twitter(120)
+    twit.add_twitter_account('elonmusk')
+    twit.add_twitter_account('BocaChicaGal')
+    twit.add_twitter_account('SpaceX')
     while 1:
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
-            manage_twitter()
             manage_youtube()
+            manage_twitter(twit)
         manage_closures()
         manage_tfrs()
         time.sleep(20)
