@@ -64,7 +64,7 @@ def main():
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
             manage_twitter(twit)
-        manage_youtube(yt)
+            manage_youtube(yt)
         manage_closures()
         manage_tfrs()
         time.sleep(20)
