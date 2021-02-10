@@ -7,6 +7,7 @@ from data_sources import dotenv_parser
 class Twitter:
     tweet_endpoint = 'https://api.twitter.com/2/users/:id/tweets?exclude=retweets'
     lookup_endpoint = 'https://api.twitter.com/2/users/by'
+    names = {}
     env = dotenv_parser.get_env('.env')
     try:
         headers = {
@@ -26,7 +27,7 @@ class Twitter:
             print(response.json())
             return { 'meta': { 'result_count': 0 } }
 
-    def __init__(self, timespan):
+    def __init__(self, timespan=0):
         self.accounts = []
         self.latest_tweets = {}
         self.timespan = timespan
@@ -59,12 +60,14 @@ class Twitter:
         account = self.__get_account(username)
         if account not in self.accounts:
             self.accounts.append(account)
-            return account
+            Twitter.names[account['username']] = account['name']
+        return account
 
     def remove_twitter_account(self, username):
         account = self.__get_account(username)
         while account in self.accounts:
             self.accounts.remove(account)
+            del Twitter.names[account['username']]
 
     def update(self):
         update = {}
