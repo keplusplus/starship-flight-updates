@@ -1,6 +1,6 @@
 import database, time, telebot, datetime
 from data_sources.weather import Weather
-from data_sources import twitter 
+from data_sources import twitter, youtube
 from threading import Thread
 from status import Status
 
@@ -49,20 +49,22 @@ def manage_twitter(twit):
             else:
                 telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twitter.Twitter().names[x]+'</b></u></a>')
 
-def manage_youtube():
-    pass    #TODO
+def manage_youtube(yt:youtube.Youtube()):
+    for x in yt.update():
+        telebot.send_channel_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>')
 
 def main():
     print('>starting active-main loop')
-    twit = twitter.Twitter(120)
+    yt = youtube.Youtube(60000)
+    twit = twitter.Twitter(20)
     twit.add_twitter_account('elonmusk')
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     while 1:
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
-            manage_youtube()
             manage_twitter(twit)
+        manage_youtube(yt)
         manage_closures()
         manage_tfrs()
         time.sleep(20)
