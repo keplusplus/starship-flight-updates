@@ -50,23 +50,25 @@ def manage_twitter(twit):
                 telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twitter.Twitter().names[x]+'</b></u></a>')
 
 def manage_youtube(yt:youtube.Youtube()):
-    for x in yt.update():
-        telebot.send_channel_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>')
+    update = yt.update()
+    if update is not None:
+        for x in update:
+            telebot.send_channel_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>')
 
 def main():
     print('>starting active-main loop')
-    yt = youtube.Youtube(60000)
+    yt = youtube.Youtube(20)
     twit = twitter.Twitter(20)
     twit.add_twitter_account('elonmusk')
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     while 1:
+        manage_closures()
+        manage_tfrs()
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
             manage_twitter(twit)
             manage_youtube(yt)
-        manage_closures()
-        manage_tfrs()
         time.sleep(20)
 
 def start():

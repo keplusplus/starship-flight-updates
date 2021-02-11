@@ -20,7 +20,6 @@ def daily_update(): #every boca morning
         database.append_faa(faa.tfrs,False)
         w = Weather().today_forecast()
         if w == {}:
-            telebot.send_err_message('main daily weather Error (empty)')
             return
         print('>collected & waiting')
         #make sure the message is sent exactly at 13:00

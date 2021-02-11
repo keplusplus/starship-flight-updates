@@ -109,11 +109,11 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                         telebot.send_channel_message('<b>A new road closure has been scheduled!</b>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> UTC)'+Status().value_change_status(conn))
                 c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
         if data != []:
-            for in_db in c.execute('SELECT id, begin, end, announced FROM closure WHERE valid = True').fetchall():
-                if (sql_to_datetime(in_db[1]),sql_to_datetime(in_db[2])) not in data_as_list:
-                    if message and ((sql_to_datetime(in_db[1]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[2])) or in_db[3]):
-                        telebot.send_channel_message('<b>This road closure has been canceled:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[1]))+' to '+datetime_to_string(sql_to_datetime(in_db[2]))+'</s> (UTC)</i>)'+Status().value_change_status(conn))
-                    c.execute('DELETE FROM closure WHERE id = ?',(in_db[0],))
+            for in_db in c.execute('SELECT begin, end, announced, id FROM closure WHERE valid = True').fetchall():
+                if (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) not in data_as_list:
+                    if message and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
+                        telebot.send_channel_message('<b>This road closure has been removed:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
+                    c.execute('DELETE FROM closure WHERE id = ?',(in_db[3],))
         conn.commit()
     except Exception as e:
         telebot.send_err_message('Error database-append-closure!\n\nException:\n' + str(e)) 
@@ -163,8 +163,8 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
         #deleted faa
         if data != []:
             for in_db in c.execute('SELECT begin, end, announced FROM faa').fetchall():
-                if not (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) in data_as_list:
-                    if message and ((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or in_db[2]):
+                if (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) not in data_as_list:
+                    if message and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
                         telebot.send_channel_message('<b>This TFR has been removed:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
                     c.execute('DELETE FROM faa WHERE begin = ? AND end = ?',(sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])))
         conn.commit()
