@@ -112,7 +112,7 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                     if message and (datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow()):
                         telebot.send_channel_message("<b>Today's road closure has changed!</b>\n<i>From "+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</i> (UTC)<i>\n⬇️\nFrom '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> (UTC)'+Status().value_change_status(conn))
                         announced = True
-                c.execute('UPDATE closure SET begin = ?, end = ?, valid = ?, announced = ? WHERE begin = ? OR end = ?',(d['begin'],d['end'],announced,d['valid'],d['begin'],d['end']))
+                c.execute('UPDATE closure SET begin = ?, end = ?, valid = ?, announced = ? WHERE begin = ? OR end = ?',(d['begin'],d['end'],d['valid'],announced,d['begin'],d['end']))
             else:   #not in db
                 announced = False
                 if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow():
@@ -162,7 +162,6 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
                 c.execute('UPDATE faa SET fromSurface = ?, toAltitude = ? WHERE begin = ? AND end = ?',(d['fromSurface'],d['toAltitude'],d['begin'], d['end']))
             else:   #not in db
                 #new faa
-                print(d)
                 announced = False
                 if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow():
                     announced = True

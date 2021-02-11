@@ -93,6 +93,7 @@ def regular_update():
     except Exception as e:
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
+#database.reset_database()
 def main():
     database.setup_database()
     regular_update()
