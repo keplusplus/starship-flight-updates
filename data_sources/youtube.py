@@ -24,7 +24,13 @@ class Youtube:
         last_time = datetime.datetime.now()-datetime.timedelta(minutes=self.timespan)
         if channel in self.latest_video:
             last_time = self.latest_video[channel]
-        for entry in reversed(xmltodict.parse(requests.get('https://www.youtube.com/feeds/videos.xml?',{'channel_id':channel}).content)['feed']['entry']):
+        data = None
+        try:
+            requests.get('https://www.youtube.com/feeds/videos.xml?',{'channel_id':channel})
+        except:
+            pass
+        if data is None: return None
+        for entry in reversed(xmltodict.parse(data.content)['feed']['entry']):
             if datetime.datetime.strptime(entry['published'],"%Y-%m-%dT%H:%M:%S%z").replace(tzinfo=None) > last_time:
                 last_time = datetime.datetime.strptime(entry['published'],"%Y-%m-%dT%H:%M:%S%z").replace(tzinfo=None)
                 if self._filter(entry['media:group']['media:title']):   #print(json.dumps(entry,indent=2,sort_keys=False))
@@ -35,6 +41,8 @@ class Youtube:
     def update(self):
         out = []
         for channel in self.channels:
-            out += self._go_trough_all_videos(channel)
+            resp = self._go_trough_all_videos(channel)
+            if resp is None: return None
+            out += resp
         return out
 
