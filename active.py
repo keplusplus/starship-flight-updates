@@ -63,12 +63,12 @@ def main():
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     while 1:
+        manage_closures()
+        manage_tfrs()
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
             manage_twitter(twit)
             manage_youtube(yt)
-        manage_closures()
-        manage_tfrs()
         time.sleep(20)
 
 def start():
