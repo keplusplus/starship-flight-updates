@@ -25,7 +25,7 @@ class Status:
 
     def value_change_status(self, conn = None) -> str:   #called when new/change/remove closure/tfr
         return ''
-        flight = weather.Weather().weather_text(weather.Weather().current_weather.Weather())[1] and weather.Weather().wind_text(weather.Weather().current_weather.Weather())[1] and database.road_closure_today(conn)[0] and database.faa_today(conn)[0]
+        flight = weather.Weather().weather_text(weather.Weather().current_weather())[1] and weather.Weather().wind_text(weather.Weather().current_weather())[1] and database.road_closure_today(conn)[0] and database.faa_today(conn)[0]
         static = database.road_closure_today(conn)[0]
         out = ''
         if Status()._last_status['flight'] is not None:
@@ -45,15 +45,15 @@ class Status:
         return out
     
     def active_change(self, currently_active) -> str:
-        flight, static = (weather.Weather().wind_text(weather.Weather().current_weather.Weather())[1] and weather.Weather().wind_text(weather.Weather().current_weather.Weather())[1] and (currently_active['closure'] != []) and (currently_active['tfr'] != [])), (currently_active['closure'] != [])
+        flight, static = (weather.Weather().wind_text(weather.Weather().current_weather())[1] and weather.Weather().wind_text(weather.Weather().current_weather())[1] and (currently_active['closure'] != []) and (currently_active['tfr'] != [])), (currently_active['closure'] != [])
         if Status()._last_active_status['flight'] != flight and Status()._last_active_status['static'] != static:
             if currently_active['closure'] != [] and currently_active['tfr'] != []:
-                if not weather.Weather().weather_text(weather.Weather().current_weather.Weather())[1]:
-                    return '\n<u>Flight is not possible due to weather!</u>❌<i>\n(Weather: '+weather.Weather().weather_text(weather.Weather().current_weather.Weather())[0]+')</i>'
-                elif not weather.Weather().wind_text(weather.Weather().current_weather.Weather())[1]:
-                    return '\n<u>Flight is not possible due to wind!</u>❌<i>\n(Wind: '+weather.Weather().wind_text(weather.Weather().current_weather.Weather())[0]+')</i>'
-                elif not weather.Weather().wind_text(weather.Weather().current_weather.Weather())[1] and not weather.Weather().weather_text(weather.Weather().current_weather.Weather())[1]:
-                    return '\n<u>Flight is not possible due to weather and wind!</u>❌<i>\n(Weather: '+weather.Weather().weather_text(weather.Weather().current_weather.Weather())[0]+')\n(Wind: '+weather.Weather().wind_text(weather.Weather().current_weather.Weather())[0]+')</i>'
+                if not weather.Weather().weather_text(weather.Weather().current_weather())[1]:
+                    return '\n<u>Flight is not possible due to weather!</u>❌<i>\n(Weather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+')</i>'
+                elif not weather.Weather().wind_text(weather.Weather().current_weather())[1]:
+                    return '\n<u>Flight is not possible due to wind!</u>❌<i>\n(Wind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+')</i>'
+                elif not weather.Weather().wind_text(weather.Weather().current_weather())[1] and not weather.Weather().weather_text(weather.Weather().current_weather())[1]:
+                    return '\n<u>Flight is not possible due to weather and wind!</u>❌<i>\n(Weather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+')\n(Wind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+')</i>'
                 else:
                     return '\n<u><b>Flight is now possible</b></u>🚀✅'
             elif currently_active['closure'] != [] and currently_active['tfr'] == []:
