@@ -17,10 +17,12 @@ def setup_database():
     print('setting up db')
     conn = sqlite3.connect(db, timeout=20)
     c = conn.cursor()
-    if not c.execute("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='closure'").fetchone():
+    try:
         c.execute("CREATE TABLE 'closure' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'begin' TIMESTAMP NOT NULL,'end' TIMESTAMP NOT NULL,'valid' BOOL, 'announced' BOOL DEFAULT FALSE);")
-    if not c.execute("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='faa'").fetchone():
+    except:pass
+    try:
         c.execute("CREATE TABLE 'faa' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'begin' TIMESTAMP NOT NULL,'end' TIMESTAMP NOT NULL,'fromSurface' BOOL, toAltitude INTEGER, 'announced' BOOL DEFAULT FALSE);")
+    except:pass
     conn.commit()
 
 def to_utc_time(time: datetime.datetime) -> datetime.datetime:
