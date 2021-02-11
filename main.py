@@ -94,6 +94,9 @@ def regular_update():
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
 def main():
+    database.setup_database()
+    regular_update()
+    active.start()
     schedule.every().day.at("12:55").do(daily_update)
     schedule.every(15).to(25).minutes.do(regular_update)
     print('>starting main-main loop')
@@ -102,6 +105,4 @@ def main():
         time.sleep(1)
 
 if __name__ == "__main__":
-    regular_update()
-    active.start()
     main()
