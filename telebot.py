@@ -2,11 +2,16 @@ import requests, time, datetime
 bot_token = '1560624792:AAHh0VtVpem5bQ-fK_JDF3e83_Mb7O7yLKQ'    #https://api.telegram.org/botXXX/getUpdates
 
 def send_err_message(message, chatid = 578452596):
-    return requests.post('https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(chatid) ,{'text':'⚠️'+message,'disable_web_page_preview':True}).json()
+    try:
+        return requests.post('https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(chatid) ,{'text':'⚠️'+message,'disable_web_page_preview':True}).json()
+    except: pass
 
 def send_message(chatid, message, disable_link_preview = False):
     #print('<'+message)
-    resp =  requests.post('https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(chatid) + '&parse_mode=HTML',{'text':message,'disable_web_page_preview':disable_link_preview}).json()
+    resp = ''
+    try:
+        resp =  requests.post('https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(chatid) + '&parse_mode=HTML',{'text':message,'disable_web_page_preview':disable_link_preview}).json()
+    except: pass
     if not resp['ok']:
         print(resp)
         send_err_message(str(resp)+'\n\nmessage:'+message)
@@ -19,9 +24,13 @@ def send_photo(chatid, img, caption=''):
         return (send_message(chatid, caption), resp)
     resp = ''
     if 'http' in img:
-        resp = requests.post('https://api.telegram.org/bot'+ bot_token + '/sendPhoto?chat_id='+str(chatid)+ '&parse_mode=HTML',{'photo':img,'caption':caption}).json()
+        try:
+            resp = requests.post('https://api.telegram.org/bot'+ bot_token + '/sendPhoto?chat_id='+str(chatid)+ '&parse_mode=HTML',{'photo':img,'caption':caption}).json()
+        except: pass
     else:
-        resp = requests.post('https://api.telegram.org/bot'+ bot_token + '/sendPhoto?chat_id='+str(chatid)+ '&parse_mode=HTML', files={'photo': open(img, 'rb')}).json()
+        try:
+            resp = requests.post('https://api.telegram.org/bot'+ bot_token + '/sendPhoto?chat_id='+str(chatid)+ '&parse_mode=HTML', files={'photo': open(img, 'rb')}).json()
+        except: pass
     if not resp['ok']:
         print(resp)
         send_err_message(str(resp)+'\n\ncaption:'+caption)
