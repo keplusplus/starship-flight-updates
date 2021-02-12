@@ -18,7 +18,9 @@ class CameronCountyParser:
     closures = []
 
     def __init__(self):
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        try:
+            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        except: pass
 
     def parse(self):
         try:
