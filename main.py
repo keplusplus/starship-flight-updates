@@ -27,7 +27,7 @@ def daily_update(): #every boca morning
             time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
         flight = (Weather().weather_text(w)[1] and Weather().wind_text(w)[1] and bool(database.road_closure_today()[0]) and database.faa_today()[0])
         staticfire = bool(database.road_closure_today()[0])
-        if datetime.datetime.weekday() > 4 and not flight:
+        if datetime.date.today().weekday() > 4 and not flight:
             print('weekend and nothing possible')
             return
         #Header & Roadclosure
