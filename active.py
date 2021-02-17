@@ -77,7 +77,7 @@ def handle_elon(twit:twitter.Twitter):
 def main():
     print('>starting active-main loop')
     yt = youtube.Youtube(20)
-    twit = twitter.Twitter(2000)
+    twit = twitter.Twitter(20)
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     while 1:
