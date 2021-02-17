@@ -1,5 +1,5 @@
 import requests, json, datetime
-from data_sources import library_helper
+from data_sources import library_helper, dotenv_parser
 library_helper.assure_ext_library('xmltodict')
 import xmltodict
 
@@ -7,7 +7,7 @@ import xmltodict
 
 class Youtube:
 
-    APIKEY = 'AIzaSyBVgZV4-_MzfS9oENPjuH8kX11OOv5Clzg'
+    APIKEY = dotenv_parser.get_value('.env','YOUTUBE_KEY')
 
     def __init__(self, timespan=0):
         self.timespan = timespan

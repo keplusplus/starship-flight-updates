@@ -1,7 +1,9 @@
 import requests, time, datetime
-bot_token = '1560624792:AAHh0VtVpem5bQ-fK_JDF3e83_Mb7O7yLKQ'    #https://api.telegram.org/botXXX/getUpdates
+from data_sources import dotenv_parser
+bot_token = dotenv_parser.get_value('.env','TELEBOT_TOKEN')    #https://api.telegram.org/botXXX/getUpdates
+channel_id = dotenv_parser.get_value('.env','TELEBOT_CHANNEL')
 
-def send_err_message(message, chatid = 578452596):
+def send_err_message(message, chatid = -558082586):
     try:
         return requests.post('https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(chatid) ,{'text':'⚠️'+message,'disable_web_page_preview':True}).json()
     except: pass
@@ -37,7 +39,7 @@ def send_photo(chatid, img, caption=''):
     return resp
 
 def send_channel_message(message, disable_link_preview = False):
-    return send_message(-1001163862279, message, disable_link_preview)
+    return send_message(channel_id, message, disable_link_preview)
 
 def send_channel_photo(img, caption=''):
-    return send_photo(-1001163862279, img, caption)
+    return send_photo(channel_id, img, caption)

@@ -4,9 +4,10 @@
 #http://history.openweathermap.org/data/2.5/history/city?lat={lat}&lon={lon}&type=hour&start={start}&end={end}&appid={API key}
 import requests, json, datetime, telebot
 import status
+from data_sources import dotenv_parser
 
 class Weather:
-    APIKEY = 'a973723427ca8acbc74e7c47075db6fa'
+    APIKEY = dotenv_parser.get_value('.env','WEATHER_KEY')
     _last_current_weather = {'time':datetime.datetime.min,'data':{}}
 
     def __init__(self):

@@ -30,10 +30,25 @@ def manage_tfrs(inlastmin = 20):
             currently_active['tfr'].remove(x)
             telebot.send_channel_message('<b>TFR (unlimited) no longer active!</b>\n(<i><s>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+'</s> UTC</i>)'+Status().active_change(currently_active))
 
-def twitter_filter(text:str) -> bool:
-    params = ['flight test','Starship']
+def twitter_filter(user:str, text:str) -> bool:
+    f = {
+    'SpaceX':[
+        'Starship',
+        'flight test'
+    ],
+    'elonmusk':[
+        'Starship',
+        'SN'
+    ],
+    'BocaChicaGal':[
+        'Alert',
+        'evacuation',
+        'notice'
+    ]
+    }
+    params = f[user]
     for p in params:
-        if p in text:
+        if p.lower() in text.lower():
             return True
     return False
 
@@ -44,7 +59,7 @@ def manage_twitter(twit:twitter.Twitter):
             print(tweet)
             link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
             #if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
-            if twitter_filter(tweet['text']):
+            if twitter_filter(x, tweet['text']):
                 telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twit.get_Name(x)+'</b></u></a>')
 
 def manage_youtube(yt:youtube.Youtube()):
@@ -62,7 +77,7 @@ def handle_elon(twit:twitter.Twitter):
 def main():
     print('>starting active-main loop')
     yt = youtube.Youtube(20)
-    twit = twitter.Twitter(20)
+    twit = twitter.Twitter(2000)
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     while 1:
