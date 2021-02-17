@@ -60,7 +60,7 @@ def manage_twitter(twit:twitter.Twitter):
             link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
             #if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
             if twitter_filter(x, tweet['text']):
-                telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twit.get_Name(x)+'</b></u></a>')
+                telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twit.get_Name(x)+' (@'+x+' on Twitter)</b></u></a>')
 
 def manage_youtube(yt:youtube.Youtube()):
     update = yt.update()
