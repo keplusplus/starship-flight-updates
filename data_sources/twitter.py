@@ -7,7 +7,6 @@ from data_sources import dotenv_parser
 class Twitter:
     tweet_endpoint = 'https://api.twitter.com/2/users/:id/tweets?exclude=retweets'
     lookup_endpoint = 'https://api.twitter.com/2/users/by'
-    names = {}
     env = dotenv_parser.get_env('.env')
     try:
         headers = {
@@ -70,7 +69,6 @@ class Twitter:
             return None
         if account not in self.accounts:
             self.accounts.append(account)
-            Twitter.names[account['username']] = account['name']
         return account
 
     def remove_twitter_account(self, username):
@@ -79,7 +77,6 @@ class Twitter:
             return None
         while account in self.accounts:
             self.accounts.remove(account)
-            del Twitter.names[account['username']]
 
     def update(self):
         update = {}
@@ -90,3 +87,10 @@ class Twitter:
             update[account['username']] = tweets
         self.last_update = update
         return update
+    
+    def get_Name(self, username:str):
+        for account in self.accounts:
+            if account['username'] == username:
+                return account['name']
+        return None
+

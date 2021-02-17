@@ -31,23 +31,21 @@ def manage_tfrs(inlastmin = 20):
             telebot.send_channel_message('<b>TFR (unlimited) no longer active!</b>\n(<i><s>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+'</s> UTC</i>)'+Status().active_change(currently_active))
 
 def twitter_filter(text:str) -> bool:
-    params = ['flight test']
+    params = ['flight test','Starship']
     for p in params:
         if p in text:
             return True
     return False
 
-def manage_twitter(twit):
+def manage_twitter(twit:twitter.Twitter):
     resp = twit.update()
     for x in resp:
         for tweet in resp[x]:
             print(tweet)
             link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
-            if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
-                if twitter_filter(tweet['text']):
-                    telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twitter.Twitter().names[x]+'</b></u></a>')
-            else:
-                telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twitter.Twitter().names[x]+'</b></u></a>')
+            #if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
+            if twitter_filter(tweet['text']):
+                telebot.send_channel_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twit.get_Name(x)+'</b></u></a>')
 
 def manage_youtube(yt:youtube.Youtube()):
     update = yt.update()
@@ -55,11 +53,16 @@ def manage_youtube(yt:youtube.Youtube()):
         for x in update:
             telebot.send_channel_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>')
 
+def handle_elon(twit:twitter.Twitter):
+    if twit.get_Name('elonmusk') is None and currently_active['closure']!=[] and currently_active['tfr']!=[]:
+        twit.add_twitter_account('elonmusk')
+    elif twit.get_Name('elonmusk') is not None:
+        twit.remove_twitter_account('elonmusk')
+
 def main():
     print('>starting active-main loop')
     yt = youtube.Youtube(20)
     twit = twitter.Twitter(20)
-    twit.add_twitter_account('elonmusk')
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     while 1:
@@ -67,8 +70,9 @@ def main():
         manage_tfrs()
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
-            manage_twitter(twit)
             manage_youtube(yt)
+        handle_elon(twit)
+        manage_twitter(twit)
         time.sleep(20)
 
 def start():
