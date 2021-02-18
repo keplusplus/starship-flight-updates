@@ -36,7 +36,7 @@ class WikipediaParser:
             else:
                 return None
 
-            return date.strftime('%Y-%m-%d')
+            return date.strftime('%b %d %Y')
         except:
             return None
     
