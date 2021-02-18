@@ -205,8 +205,6 @@ def append_history(data:list):
     conn = sqlite3.connect(db, timeout=20)
     c = conn.cursor()
     for d in data:
-        print(d['name'])
-        print(c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone())
         if c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone():   #in db -> look for changes
             in_db = c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone()
             changes = list(set(list(d.values()))-set(in_db))
