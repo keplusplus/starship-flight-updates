@@ -3,6 +3,7 @@ from status import Status
 from data_sources.weather import Weather
 from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
+from data_sources.wikipedia import WikipediaParser
 #Gather current data -> every morning
 #schedule event[closure/faa] -> when new data
 #when schedulued task event: test if event still active: send tel message
@@ -94,9 +95,10 @@ def regular_update():
         #faa.tfrs.append({'begin':datetime.datetime(2021,2,9,21,27),'end':datetime.datetime(2021,2,9,21,29),'fromSurface':True,'toAltitude':-1})
         database.append_faa(faa.tfrs)
 
-        #HIER MUSS DEIN OJEKT HIN
+        wiki = WikipediaParser()
+        wiki.parse()
         #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
-        database.append_history()   #<- da rein muss das parse objekt!
+        database.append_history(wiki.starships)
     except Exception as e:
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
