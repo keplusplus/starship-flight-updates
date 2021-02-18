@@ -133,3 +133,6 @@ dmypy.json
 
 # Source files for testing purposes
 **/*.test.py
+
+# Files related to vscode
+.vscode/
