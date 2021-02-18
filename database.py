@@ -11,6 +11,8 @@ def reset_database():
     c.execute("CREATE TABLE 'closure' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'begin' TIMESTAMP NOT NULL,'end' TIMESTAMP NOT NULL,'valid' BOOL, 'announced' BOOL DEFAULT FALSE);")
     c.execute('DROP TABLE faa')
     c.execute("CREATE TABLE 'faa' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'begin' TIMESTAMP NOT NULL,'end' TIMESTAMP NOT NULL,'fromSurface' BOOL, toAltitude INTEGER, 'announced' BOOL DEFAULT FALSE);")
+    c.execute('DROP TABLE history')
+    c.execute("CREATE TABLE 'history' ('name' VARCHAR(250) PRIMARY KEY,'firstSpotted' VARCHAR(250) NOT NULL,'rolledOut' VARCHAR(250) NOT NULL,'firstStaticFire' VARCHAR(250) NOT NULL,'maidenFlight' VARCHAR(250) NOT NULL,'decomissioned' VARCHAR(250) NOT NULL,'constructionSite' VARCHAR(250) NOT NULL,'status' VARCHAR(250) NOT NULL,'flights' INTEGER NOT NULL);")
     conn.commit()
 
 def setup_database():
@@ -22,6 +24,9 @@ def setup_database():
     except:pass
     try:
         c.execute("CREATE TABLE 'faa' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'begin' TIMESTAMP NOT NULL,'end' TIMESTAMP NOT NULL,'fromSurface' BOOL, toAltitude INTEGER, 'announced' BOOL DEFAULT FALSE);")
+    except:pass
+    try:
+        c.execute("CREATE TABLE 'history' ('name' VARCHAR(250) PRIMARY KEY,'firstSpotted' VARCHAR(250) NOT NULL,'rolledOut' VARCHAR(250) NOT NULL,'firstStaticFire' VARCHAR(250) NOT NULL,'maidenFlight' VARCHAR(250) NOT NULL,'decomissioned' VARCHAR(250) NOT NULL,'constructionSite' VARCHAR(250) NOT NULL,'status' VARCHAR(250) NOT NULL,'flights' INTEGER NOT NULL);")
     except:pass
     conn.commit()
 
@@ -186,4 +191,31 @@ def announce_today_faas():
     conn = sqlite3.connect(db, timeout=20)
     c = conn.cursor()
     c.execute('UPDATE faa SET announced = TRUE WHERE DATE(begin) = ? OR DATE(end) = ?',(datetime.date.today(),datetime.date.today()))
+    conn.commit()
+
+def compareDicts(new:dict, old:dict) -> dict:
+    out = {}
+    if new.keys() == old.keys():
+        for x in new:
+            if new[x] != old[x]:
+                out[x] = [new[x],old[x]]
+    return out
+
+def append_history(data:list):
+    conn = sqlite3.connect(db, timeout=20)
+    c = conn.cursor()
+    for d in data:
+        print(d['name'])
+        print(c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone())
+        if c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone():   #in db -> look for changes
+            in_db = c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone()
+            changes = list(set(list(d.values()))-set(in_db))
+            if list(set(list(d.values()))-set(in_db)) != []:
+                #something changed
+                old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
+                telebot.send_channel_message(telebot.history_message(d, compareDicts(d,old)),disable_link_preview=True)
+                c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights'],d['name']))
+        else:   #not in db
+            telebot.send_channel_message(telebot.history_message(d) ,disable_link_preview=True)
+            c.execute('INSERT INTO history(name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?)',(d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
     conn.commit()

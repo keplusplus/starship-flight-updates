@@ -93,6 +93,8 @@ def regular_update():
         faa.parse()
         #faa.tfrs.append({'begin':datetime.datetime(2021,2,9,21,27),'end':datetime.datetime(2021,2,9,21,29),'fromSurface':True,'toAltitude':-1})
         database.append_faa(faa.tfrs)
+        test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
+        database.append_history([test,])
     except Exception as e:
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
