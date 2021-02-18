@@ -207,7 +207,6 @@ def append_history(data:list):
     for d in data:
         if c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone():   #in db -> look for changes
             in_db = c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone()
-            changes = list(set(list(d.values()))-set(in_db))
             if list(set(list(d.values()))-set(in_db)) != []:
                 #something changed
                 old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
