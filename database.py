@@ -1,4 +1,4 @@
-import sqlite3, telebot, datetime, message
+import sqlite3, telebot, datetime, message, time
 from status import Status
 
 db = r'.\starship-flight-updates\starship.db'
@@ -96,7 +96,7 @@ def faa_active():  #in last min
         return out
     return []
 
-def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.datetime = datetime.time(13,0)):   #daily = daily update message -> does not want any changes as extra message
+def append_cameroncounty(data: list, sendmessage:bool = True, daily_time:datetime.datetime = datetime.time(13,0)):   #daily = daily update sendmessage -> does not want any changes as extra message
     conn = sqlite3.connect(db, timeout=20)
     c = conn.cursor()
     try:
@@ -106,7 +106,7 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
             data_as_list.append((d['begin'], d['end']))
             if c.execute('SELECT * FROM closure WHERE begin = ? OR end = ?',(d['begin'],d['end'])).fetchone():   #in database
                 in_db = c.execute('SELECT begin,end,valid,announced FROM closure WHERE begin = ? OR end = ?',(d['begin'],d['end'])).fetchone()
-                if message and in_db[3]:
+                if sendmessage and in_db[3]:
                     if in_db[2] != d['valid']:  #valid changed
                         if d['valid']:  #now valid
                             message.send_message("<b>Today's road closure has been rescheduled!</b>\n(<i>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
@@ -114,7 +114,7 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                             message.send_message("<b>Today's road closure has been canceled!</b>\n(<i><s>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</s> UTC</i>)'+Status().value_change_status(conn))
                 announced = in_db[3]
                 if sql_to_datetime(in_db[0]) != d['begin'] or sql_to_datetime(in_db[1]) != d['end']:  #begin has changed
-                    if message and (datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow()):
+                    if sendmessage and (datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow()):
                         message.send_message("<b>Today's road closure has changed!</b>\n<i>From "+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</i> (UTC)<i>\n⬇️\nFrom '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> (UTC)'+Status().value_change_status(conn))
                         announced = True
                 c.execute('UPDATE closure SET begin = ?, end = ?, valid = ?, announced = ? WHERE begin = ? OR end = ?',(d['begin'],d['end'],d['valid'],announced,d['begin'],d['end']))
@@ -122,13 +122,13 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                 announced = False
                 if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow():
                     announced = True
-                    if message:
+                    if sendmessage:
                         message.send_message('<b>A new road closure has been scheduled!</b>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> UTC)'+Status().value_change_status(conn))
                 c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
         if data != []:
             for in_db in c.execute('SELECT begin, end, announced, id FROM closure WHERE valid = True').fetchall():
                 if (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) not in data_as_list:
-                    if message and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
+                    if sendmessage and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
                         message.send_message('<b>This road closure has been removed:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
                     c.execute('DELETE FROM closure WHERE id = ?',(in_db[3],))
         conn.commit()
@@ -141,7 +141,7 @@ def announce_today_closures():
     c.execute('UPDATE closure SET announced = TRUE WHERE DATE(begin) = ? OR DATE(end) = ?',(datetime.date.today(),datetime.date.today()))
     conn.commit()
 
-def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetime.time(13,0)):
+def append_faa(data, sendmessage:bool = True, daily_time:datetime.datetime = datetime.time(13,0)):
     conn = sqlite3.connect(db, timeout=20)
     c = conn.cursor()
     try:
@@ -151,7 +151,7 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
             if c.execute('SELECT * FROM faa WHERE begin = ? AND end = ?',(d['begin'], d['end'])).fetchone():   #in db
                 #changed faa
                 in_db = c.execute('SELECT begin,end,fromSurface,toAltitude,announced FROM faa WHERE begin = ? AND end = ?',(d['begin'], d['end'])).fetchone()
-                if message and in_db[4]:
+                if sendmessage and in_db[4]:
                     if in_db[2] != d['fromSurface'] and in_db[3] != d['toAltitude']:
                         message.send_message('<b>FromSurface and max. alt have changed to:</b>\n'+str(d['fromSurface'])+' and '+str(d['toAltitude']).replace('-1','unlimited')+' ft'+Status().value_change_status(conn))
                     elif in_db[2] != d['fromSurface']:
@@ -170,7 +170,7 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
                 announced = False
                 if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow():
                     announced = True
-                    if message:
+                    if sendmessage:
                         if d['toAltitude'] == -1:
                             message.send_message('<b>New TFR has been issued!</b>\nMax alt.: unlimited, flight is possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
                         else:
@@ -180,7 +180,7 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
         if data != []:
             for in_db in c.execute('SELECT begin, end, announced FROM faa').fetchall():
                 if (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) not in data_as_list:
-                    if message and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
+                    if sendmessage and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
                         message.send_message('<b>This TFR has been removed:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
                     c.execute('DELETE FROM faa WHERE begin = ? AND end = ?',(sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])))
         conn.commit()
@@ -210,9 +210,11 @@ def append_history(data:list):
             if list(set(list(d.values()))-set(in_db)) != []:
                 #something changed
                 old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
-                message.send_message(telebot.history_message(d, compareDicts(d,old)),disable_link_preview=True)
                 c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights'],d['name']))
+                message.send_test_message(message.history_message(d, compareDicts(d,old)),disable_link_preview=True)
+                time.sleep(5)
         else:   #not in db
-            message.send_message(telebot.history_message(d) ,disable_link_preview=True)
+            message.send_test_message(message.history_message(d) ,disable_link_preview=True)
             c.execute('INSERT INTO history(name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?)',(d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
-    conn.commit()
+            time.sleep(5)
+        conn.commit()
