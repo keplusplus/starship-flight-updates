@@ -83,7 +83,7 @@ def daily_update(): #every boca morning
         telebot.send_err_message('Error daily-message!\n\nException:\n' + str(e))
 
 def regular_update():
-    print('>updating')
+    print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
     try:
         ccp = CameronCountyParser()
         ccp.parse()

@@ -56,7 +56,6 @@ def manage_twitter(twit:twitter.Twitter):
     resp = twit.update()
     for x in resp:
         for tweet in resp[x]:
-            print(tweet)
             link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
             #if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
             if twitter_filter(x, tweet['text']):
