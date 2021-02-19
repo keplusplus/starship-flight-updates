@@ -2,8 +2,9 @@ import requests, time, datetime
 from data_sources import dotenv_parser
 bot_token = dotenv_parser.get_value('.env','TELEBOT_TOKEN')    #https://api.telegram.org/botXXX/getUpdates
 channel_id = dotenv_parser.get_value('.env','TELEBOT_CHANNEL')
+err_channel_id = dotenv_parser.get_value('.env','TELEBOT_ERR_CHANNEL')
 
-def send_err_message(message, chatid = -558082586):
+def send_err_message(message, chatid = err_channel_id):
     try:
         return requests.post('https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(chatid) ,{'text':'⚠️'+message,'disable_web_page_preview':True}).json()
     except: pass
