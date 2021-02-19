@@ -35,7 +35,7 @@ class CameronCountyParser:
                 time_text = td[2].get_text()
                 status_text = td[3].get_text()
 
-                time_text.replace(".m.", "m")
+                time_text = time_text.replace(".m.", "m")
                 date = datetime.strptime(date_text[date_text.find(', ') + 2:], '%B %d, %Y')
                 begin = datetime.combine(date, datetime.strptime(time_text[:time_text.find(' to ')], '%I:%M %p').time())
 
