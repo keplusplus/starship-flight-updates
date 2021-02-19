@@ -1,4 +1,4 @@
-import sqlite3, telebot, datetime
+import sqlite3, telebot, datetime, message
 from status import Status
 
 db = r'.\starship-flight-updates\starship.db'
@@ -109,13 +109,13 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                 if message and in_db[3]:
                     if in_db[2] != d['valid']:  #valid changed
                         if d['valid']:  #now valid
-                            telebot.send_channel_message("<b>Today's road closure has been rescheduled!</b>\n(<i>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
+                            message.send_message("<b>Today's road closure has been rescheduled!</b>\n(<i>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
                         else:   #now unvalid
-                            telebot.send_channel_message("<b>Today's road closure has been canceled!</b>\n(<i><s>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</s> UTC</i>)'+Status().value_change_status(conn))
+                            message.send_message("<b>Today's road closure has been canceled!</b>\n(<i><s>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</s> UTC</i>)'+Status().value_change_status(conn))
                 announced = in_db[3]
                 if sql_to_datetime(in_db[0]) != d['begin'] or sql_to_datetime(in_db[1]) != d['end']:  #begin has changed
                     if message and (datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow()):
-                        telebot.send_channel_message("<b>Today's road closure has changed!</b>\n<i>From "+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</i> (UTC)<i>\n⬇️\nFrom '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> (UTC)'+Status().value_change_status(conn))
+                        message.send_message("<b>Today's road closure has changed!</b>\n<i>From "+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</i> (UTC)<i>\n⬇️\nFrom '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> (UTC)'+Status().value_change_status(conn))
                         announced = True
                 c.execute('UPDATE closure SET begin = ?, end = ?, valid = ?, announced = ? WHERE begin = ? OR end = ?',(d['begin'],d['end'],d['valid'],announced,d['begin'],d['end']))
             else:   #not in db
@@ -123,13 +123,13 @@ def append_cameroncounty(data: list, message:bool = True, daily_time:datetime.da
                 if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow():
                     announced = True
                     if message:
-                        telebot.send_channel_message('<b>A new road closure has been scheduled!</b>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> UTC)'+Status().value_change_status(conn))
+                        message.send_message('<b>A new road closure has been scheduled!</b>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> UTC)'+Status().value_change_status(conn))
                 c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
         if data != []:
             for in_db in c.execute('SELECT begin, end, announced, id FROM closure WHERE valid = True').fetchall():
                 if (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) not in data_as_list:
                     if message and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
-                        telebot.send_channel_message('<b>This road closure has been removed:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
+                        message.send_message('<b>This road closure has been removed:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
                     c.execute('DELETE FROM closure WHERE id = ?',(in_db[3],))
         conn.commit()
     except Exception as e:
@@ -153,17 +153,17 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
                 in_db = c.execute('SELECT begin,end,fromSurface,toAltitude,announced FROM faa WHERE begin = ? AND end = ?',(d['begin'], d['end'])).fetchone()
                 if message and in_db[4]:
                     if in_db[2] != d['fromSurface'] and in_db[3] != d['toAltitude']:
-                        telebot.send_channel_message('<b>FromSurface and max. alt have changed to:</b>\n'+str(d['fromSurface'])+' and '+str(d['toAltitude']).replace('-1','unlimited')+' ft'+Status().value_change_status(conn))
+                        message.send_message('<b>FromSurface and max. alt have changed to:</b>\n'+str(d['fromSurface'])+' and '+str(d['toAltitude']).replace('-1','unlimited')+' ft'+Status().value_change_status(conn))
                     elif in_db[2] != d['fromSurface']:
-                        telebot.send_channel_message('<b>FromSurface has changed to: '+str(d['fromSurface'])+'</b>'+Status().value_change_status(conn))
+                        message.send_message('<b>FromSurface has changed to: '+str(d['fromSurface'])+'</b>'+Status().value_change_status(conn))
                     elif in_db[3] != d['toAltitude']:
                         if d['toAltitude'] == -1:
-                            telebot.send_channel_message('<b>TFR max altitude has changed!</b>\nMax alt. is now unlimited (was '+str(in_db[3])+'ft)\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
+                            message.send_message('<b>TFR max altitude has changed!</b>\nMax alt. is now unlimited (was '+str(in_db[3])+'ft)\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
                         else:
                             was = str(in_db[3])
                             if in_db[3] == -1:
                                 was = 'unlimited'
-                            telebot.send_channel_message('<b>TFR max altitude has changed!</b>\nMax alt. is now '+str(d['toAltitude'])+'ft (was '+was+' ft)\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
+                            message.send_message('<b>TFR max altitude has changed!</b>\nMax alt. is now '+str(d['toAltitude'])+'ft (was '+was+' ft)\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
                 c.execute('UPDATE faa SET fromSurface = ?, toAltitude = ? WHERE begin = ? AND end = ?',(d['fromSurface'],d['toAltitude'],d['begin'], d['end']))
             else:   #not in db
                 #new faa
@@ -172,16 +172,16 @@ def append_faa(data, message:bool = True, daily_time:datetime.datetime = datetim
                     announced = True
                     if message:
                         if d['toAltitude'] == -1:
-                            telebot.send_channel_message('<b>New TFR has been issued!</b>\nMax alt.: unlimited, flight is possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
+                            message.send_message('<b>New TFR has been issued!</b>\nMax alt.: unlimited, flight is possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
                         else:
-                            telebot.send_channel_message('<b>New TFR has been issued!</b>\nMax alt.: '+str(d['toAltitude'])+' ft, flight is not possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
+                            message.send_message('<b>New TFR has been issued!</b>\nMax alt.: '+str(d['toAltitude'])+' ft, flight is not possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
                 c.execute('INSERT INTO faa(begin,end,fromSurface,toAltitude,announced) VALUES(?,?,?,?,?)',(d['begin'],d['end'],d['fromSurface'],d['toAltitude'],announced))
         #deleted faa
         if data != []:
             for in_db in c.execute('SELECT begin, end, announced FROM faa').fetchall():
                 if (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) not in data_as_list:
                     if message and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
-                        telebot.send_channel_message('<b>This TFR has been removed:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
+                        message.send_message('<b>This TFR has been removed:</b>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
                     c.execute('DELETE FROM faa WHERE begin = ? AND end = ?',(sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])))
         conn.commit()
     except Exception as e:
@@ -210,9 +210,9 @@ def append_history(data:list):
             if list(set(list(d.values()))-set(in_db)) != []:
                 #something changed
                 old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
-                telebot.send_channel_message(telebot.history_message(d, compareDicts(d,old)),disable_link_preview=True)
+                message.send_message(telebot.history_message(d, compareDicts(d,old)),disable_link_preview=True)
                 c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights'],d['name']))
         else:   #not in db
-            telebot.send_channel_message(telebot.history_message(d) ,disable_link_preview=True)
+            message.send_message(telebot.history_message(d) ,disable_link_preview=True)
             c.execute('INSERT INTO history(name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?)',(d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
     conn.commit()
