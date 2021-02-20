@@ -32,7 +32,7 @@ def daily_update(): #every boca morning
             print('weekend and nothing possible')
             return
         #Header & Roadclosure
-        out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b>\n<i>[Time UTC: '+database.datetime_to_string(datetime.datetime.utcnow())+' | local: '+database.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+']</i>\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
+        out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b>\n<i>Time [UTC: '+database.datetime_to_string(datetime.datetime.utcnow())+' | local: '+database.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+']</i>\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
         if database.road_closure_today()[0]:
             out+= '✅\n'
             for x in database.road_closure_today()[1:]:
