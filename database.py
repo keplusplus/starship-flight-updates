@@ -211,8 +211,9 @@ def append_history(data:list):
                 #something changed
                 old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
                 c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights'],d['name']))
-                message.send_test_message(message.history_message(d, compareDicts(d,old)),disable_link_preview=True)
-                time.sleep(5)
+                if old['status'] not in ['Retired','Destroyed','Scrapped']:
+                    message.send_test_message(message.history_message(d, compareDicts(d,old)),disable_link_preview=True)
+                time.sleep(3)
         else:   #not in db
             message.send_test_message(message.history_message(d) ,disable_link_preview=True)
             c.execute('INSERT INTO history(name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?)',(d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
