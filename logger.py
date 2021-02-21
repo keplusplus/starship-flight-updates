@@ -14,15 +14,15 @@ class StarshipLogger:
 
         logFormatter = logging.Formatter("%(asctime)s [%(threadName)s] [%(levelname)s] | %(message)s")
 
-        fileHandler = logging.FileHandler('latest.log')
+        fileHandler = logging.FileHandler(self.log_file_name)
         fileHandler.setFormatter(logFormatter)
         self.logger.addHandler(fileHandler)
 
         consoleHandler = logging.StreamHandler(sys.stdout)
         consoleHandler.setFormatter(logFormatter)
-        self.rootLogger.addHandler(consoleHandler)
+        self.logger.addHandler(consoleHandler)
 
-        self.rootLogger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.INFO)
 
     def error(self, msg):
         self.logger.error(msg)

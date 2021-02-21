@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 
 from requests.models import Response
 from data_sources import dotenv_parser
+import logger
 
 class Twitter:
     tweet_endpoint = 'https://api.twitter.com/2/users/:id/tweets?exclude=retweets'
@@ -18,7 +19,9 @@ class Twitter:
     
     def __req_json(self, endpoint):
         try:
+            self.logger.info('[twitter] | GET {}'.format(endpoint))
             response = requests.get(endpoint, headers=Twitter.headers)
+            self.logger.info('[twitter] | {} Reponse: {}'.format(response.status_code, response.json()))
             if response.status_code == 200:
                 return response.json()
             else:
@@ -27,16 +30,18 @@ class Twitter:
                 print(response.json())
                 return { 'meta': { 'result_count': 0 } }
         except Exception as e:
+            self.logger.warning('[twitter] | Error occured in last request - {}'.format(str(e)))
             if e is not requests.ConnectionError:
                 telebot.send_err_message('Error Twitter-req-json!\n\nException:\n' + str(e))
             return None
 
-    def __init__(self, timespan=0):
+    def __init__(self, timespan=0, logger=logger.StarshipLogger('twitter.log')):
         self.accounts = []
         self.latest_tweets = {}
         self.timespan = timespan
         self.init_time = datetime.utcnow()
         self.last_update = {}
+        self.logger = logger
 
     def __get_account(self, username):
         response = self.__req_json(Twitter.lookup_endpoint + '?usernames=' + str.lower(username))
