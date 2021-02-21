@@ -54,6 +54,8 @@ def twitter_filter(user:str, text:str) -> bool:
 
 def manage_twitter(twit:twitter.Twitter):
     resp = twit.update()
+    if resp is None:
+        return
     for x in resp:
         for tweet in resp[x]:
             link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
