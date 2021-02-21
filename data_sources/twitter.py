@@ -28,7 +28,7 @@ class Twitter:
                 return { 'meta': { 'result_count': 0 } }
         except Exception as e:
             if e is not requests.ConnectionError:
-                telebot.send_err_message('Error Weather-today-forecast!\n\nException:\n' + str(e))
+                telebot.send_err_message('Error Twitter-req-json!\n\nException:\n' + str(e))
             return None
 
     def __init__(self, timespan=0):
