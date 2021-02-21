@@ -1,4 +1,4 @@
-import requests
+import requests, telebot
 from datetime import timedelta, datetime
 
 from requests.models import Response
@@ -26,7 +26,9 @@ class Twitter:
                 print('Check your bearer token in .env!')
                 print(response.json())
                 return { 'meta': { 'result_count': 0 } }
-        except ConnectionError:
+        except Exception as e:
+            if e is not requests.ConnectionError:
+                telebot.send_err_message('Error Weather-today-forecast!\n\nException:\n' + str(e))
             return None
 
     def __init__(self, timespan=0):
