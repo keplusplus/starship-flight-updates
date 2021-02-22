@@ -116,7 +116,7 @@ def main():
     regular_update(twit)
     active.start(twit)
     schedule.every().day.at("12:55").do(daily_update)
-    schedule.every(15).to(25).minutes.do(regular_update)
+    schedule.every(15).to(25).minutes.do(regular_update, twit = twit)
     print('>starting main-main loop')
     while 1:
         schedule.run_pending()
