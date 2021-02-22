@@ -19,6 +19,8 @@ def handle_link(text:str , disable_link_preview:bool):  #rekursive
     preview = ''
     if not disable_link_preview:
         preview = '\n'+link
+    else:
+        link = '<'+link+'>'
     return handle_link(beforelink+'['+linktext+']('+link+')'+afterlink+preview,disable_link_preview)
 
 def send_discord_message(text:str, disable_link_preview = False):

@@ -32,10 +32,10 @@ def daily_update(): #every boca morning
         if datetime.date.today().weekday() > 4 and not flight:
             print('weekend and nothing possible')
             return
-        flightStr = 'y' if flight else 'n'
-        staticStr = 'y' if staticfire else 'n'
+        flightStr = 'yes' if flight else 'no'
+        staticStr = 'yes' if staticfire else 'no'
         #Header & Roadclosure
-        out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight:'+flightStr+'|static:'+staticStr+']\nCurrent Time [UTC: '+database.datetime_to_string(datetime.datetime.utcnow())+' | local: '+database.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+']</i>\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
+        out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+database.datetime_to_string(datetime.datetime.utcnow())+' local: '+database.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
         if database.road_closure_today()[0]:
             out+= '✅\n'
             for x in database.road_closure_today()[1:]:
@@ -79,7 +79,7 @@ def daily_update(): #every boca morning
         #Flight Message
         out += Status().daily_status(w)
         out+='<i>(We will keep you updated if anything changes!)</i>'
-        message.send_message(out, True)
+        message.send_message(out)
         database.announce_today_closures()
         database.announce_today_faas()
     except Exception as e:
