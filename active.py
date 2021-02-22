@@ -61,7 +61,7 @@ def manage_twitter(twit:twitter.Twitter):
             link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
             #if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
             if twitter_filter(x, tweet['text']):
-                message.send_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twit.get_Name(x)+' (@'+x+' on Twitter)</b></u></a>')
+                message.send_message('<a href="'+link+'">‌‌<b>Tweet by '+twit.get_Name(x)+'</b>\n(@'+x+' on Twitter)</a>')
 
 def manage_youtube(yt:youtube.Youtube()):
     update = yt.update()
