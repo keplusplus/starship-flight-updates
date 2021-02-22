@@ -52,7 +52,14 @@ def twitter_filter(user:str, text:str) -> bool:
             return True
     return False
 
+def handle_elon(twit:twitter.Twitter):
+    if twit.get_Name('elonmusk') is None and currently_active['closure']!=[] and currently_active['tfr']!=[]:
+        twit.add_twitter_account('elonmusk')
+    elif twit.get_Name('elonmusk') is not None:
+        twit.remove_twitter_account('elonmusk')
+
 def manage_twitter(twit:twitter.Twitter):
+    handle_elon(twit)
     resp = twit.update()
     if resp is None:
         return
@@ -61,7 +68,7 @@ def manage_twitter(twit:twitter.Twitter):
             link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
             #if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
             if twitter_filter(x, tweet['text']):
-                message.send_message('<a href="'+link+'">‌‌<u><b>Tweet by '+twit.get_Name(x)+' (@'+x+' on Twitter)</b></u></a>')
+                message.send_message('<a href="'+link+'">‌‌<b>Tweet by '+twit.get_Name(x)+'</b>\n(@'+x+' on Twitter)</a>')
 
 def manage_youtube(yt:youtube.Youtube()):
     update = yt.update()
@@ -69,28 +76,19 @@ def manage_youtube(yt:youtube.Youtube()):
         for x in update:
             message.send_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>')
 
-def handle_elon(twit:twitter.Twitter):
-    if twit.get_Name('elonmusk') is None and currently_active['closure']!=[] and currently_active['tfr']!=[]:
-        twit.add_twitter_account('elonmusk')
-    elif twit.get_Name('elonmusk') is not None:
-        twit.remove_twitter_account('elonmusk')
-
-def main():
+def main(twit:twitter.Twitter):
     print('>starting active-main loop')
     yt = youtube.Youtube(20)
-    twit = twitter.Twitter(20)
-    twit.add_twitter_account('BocaChicaGal')
-    twit.add_twitter_account('SpaceX')
     while 1:
         manage_closures()
         manage_tfrs()
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
             manage_youtube(yt)
-        handle_elon(twit)
-        manage_twitter(twit)
+        if currently_active['closure']!=[]:
+            manage_twitter(twit)
         time.sleep(20)
 
-def start():
-    Thread(target=main).start()
+def start(twit:twitter.Twitter):
+    Thread(target=main, args=(twit,)).start()
     pass

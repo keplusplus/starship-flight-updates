@@ -211,10 +211,10 @@ def append_history(data:list):
                 #something changed
                 old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
                 c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights'],d['name']))
-                if old['status'] not in ['Retired','Destroyed','Scrapped']: #-> no message for retired/destroyed/scrapped starships
+                if old['status'] not in ['Retired','Destroyed','Scrapped','Suspended']: #-> no message for retired/destroyed/scrapped starships
                     message.send_test_message(message.history_message(d, compareDicts(d,old)),disable_link_preview=True)
                     time.sleep(3)
-                elif old['status'] != d['status'] and d['status'] not in ['Retired','Destroyed','Scrapped']:    #-> message if status changed from retired/destroyed/scrapped to something else than retired/destroyed/scrapped
+                elif old['status'] != d['status'] and d['status'] not in ['Retired','Destroyed','Scrapped','Suspended']:    #-> message if status changed from retired/destroyed/scrapped to something else than retired/destroyed/scrapped
                     message.send_test_message(message.history_message(d, compareDicts(d,old)),disable_link_preview=True)
                     time.sleep(3)
         else:   #not in db

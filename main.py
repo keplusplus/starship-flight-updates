@@ -4,6 +4,7 @@ from data_sources.weather import Weather
 from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
 from data_sources.wikipedia import WikipediaParser
+from data_sources import twitter
 #Gather current data -> every morning
 #schedule event[closure/faa] -> when new data
 #when schedulued task event: test if event still active: send tel message
@@ -31,8 +32,10 @@ def daily_update(): #every boca morning
         if datetime.date.today().weekday() > 4 and not flight:
             print('weekend and nothing possible')
             return
+        flightStr = 'y' if flight else 'n'
+        staticStr = 'y' if staticfire else 'n'
         #Header & Roadclosure
-        out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b>\n<i>Current Time [UTC: '+database.datetime_to_string(datetime.datetime.utcnow())+' | local: '+database.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+']</i>\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
+        out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight:'+flightStr+'|static:'+staticStr+']\nCurrent Time [UTC: '+database.datetime_to_string(datetime.datetime.utcnow())+' | local: '+database.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+']</i>\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
         if database.road_closure_today()[0]:
             out+= '✅\n'
             for x in database.road_closure_today()[1:]:
@@ -82,7 +85,7 @@ def daily_update(): #every boca morning
     except Exception as e:
         telebot.send_err_message('Error daily-message!\n\nException:\n' + str(e))
 
-def regular_update():
+def regular_update(twit:twitter.Twitter):
     print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
     try:
         ccp = CameronCountyParser()
@@ -99,14 +102,19 @@ def regular_update():
         wiki.parse()
         #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
         database.append_history(wiki.starships)
+
+        active.manage_twitter(twit)
     except Exception as e:
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
 #database.reset_database()
 def main():
     database.setup_database()
-    regular_update()
-    active.start()
+    twit = twitter.Twitter(20)
+    twit.add_twitter_account('BocaChicaGal')
+    twit.add_twitter_account('SpaceX')
+    regular_update(twit)
+    active.start(twit)
     schedule.every().day.at("12:55").do(daily_update)
     schedule.every(15).to(25).minutes.do(regular_update)
     print('>starting main-main loop')
