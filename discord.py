@@ -29,4 +29,7 @@ def send_discord_message(text:str, disable_link_preview = False):
     text = text.replace('<i>','_').replace('</i>','_')      #italic
     text = text.replace('<s>','~~').replace('</s>','~~')    #strike
     text = handle_link(text,disable_link_preview)
-    requests.post(url, json = {'content':text})
+    if disable_link_preview:
+        requests.post(url, json = {'embeds':[{'description':text,'color': 7707321},]}) #embed
+    else:
+        requests.post(url, json = {'content':text})
