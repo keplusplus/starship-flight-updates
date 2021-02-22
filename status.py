@@ -18,7 +18,7 @@ class Status:
         else:
             out+='\n<u><b>Presumably no flight today</b></u>🚀❌\n'
         if staticfire:
-            out+='Static fire or wdr are still possible\n'
+            out+='Static fire or wdr are possible\n'
         else:
             out+='Nothing big happening on current data❗\n'
         return out
