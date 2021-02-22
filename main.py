@@ -79,7 +79,7 @@ def daily_update(): #every boca morning
         #Flight Message
         out += Status().daily_status(w)
         out+='<i>(We will keep you updated if anything changes!)</i>'
-        message.send_message(out, True)
+        message.send_message(out)
         database.announce_today_closures()
         database.announce_today_faas()
     except Exception as e:
