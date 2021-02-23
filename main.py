@@ -101,13 +101,13 @@ def regular_update(twit:twitter.Twitter):
         wiki = WikipediaParser()
         wiki.parse()
         #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
-        database.append_history(wiki.starships)
+        #database.append_history(wiki.starships)
 
         active.manage_twitter(twit)
     except Exception as e:
         telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
-#database.reset_database()
+database.reset_database()
 def main():
     database.setup_database()
     twit = twitter.Twitter(20)

@@ -74,8 +74,8 @@ def faa_today(conn = None):
     conn.commit()
     return out
 
-def road_closure_active():  #used by thread
-    conn = sqlite3.connect(db, timeout=20)  #needs own db because it's threaded
+def road_closure_active(conn = None):  #used by thread
+    if conn is None: conn = sqlite3.connect(db, timeout=20)
     c = conn.cursor()
     if c.execute('SELECT * from closure WHERE begin <= Datetime("now") AND end > Datetime("now") AND valid = True').fetchone():
         in_db = c.execute('SELECT begin, end from closure WHERE begin <= Datetime("now") AND end > Datetime("now") AND valid = True').fetchall()
@@ -85,8 +85,8 @@ def road_closure_active():  #used by thread
         return out
     return []
 
-def faa_active():  #in last min
-    conn = sqlite3.connect(db, timeout=20)  #needs own db because it's threaded
+def faa_active(conn = None):  #in last min
+    if conn is None: conn = sqlite3.connect(db, timeout=20)
     c = conn.cursor()
     if c.execute('SELECT * from faa WHERE begin <= Datetime("now") AND end > Datetime("now") AND toAltitude = -1').fetchone():
         in_db = c.execute('SELECT begin, end from faa WHERE begin <= Datetime("now") AND end > Datetime("now") AND toAltitude = -1').fetchall()
@@ -122,8 +122,9 @@ def append_cameroncounty(data: list, sendmessage:bool = True, daily_time:datetim
                 announced = False
                 if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow():
                     announced = True
-                    if sendmessage:
-                        message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>A new road closure has been scheduled!</b></a>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> UTC)'+Status().value_change_status(conn))
+                #c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
+                if sendmessage and announced:
+                    message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>A new road closure has been scheduled!</b></a>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> UTC)'+Status().value_change_status(conn))
                 c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
         if data != []:
             for in_db in c.execute('SELECT begin, end, announced, id FROM closure WHERE valid = True').fetchall():
@@ -170,12 +171,12 @@ def append_faa(data, sendmessage:bool = True, daily_time:datetime.datetime = dat
                 announced = False
                 if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow():
                     announced = True
-                    if sendmessage:
-                        if d['toAltitude'] == -1:
-                            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: unlimited, flight is possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
-                        else:
-                            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+str(d['toAltitude'])+' ft, flight is not possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
                 c.execute('INSERT INTO faa(begin,end,fromSurface,toAltitude,announced) VALUES(?,?,?,?,?)',(d['begin'],d['end'],d['fromSurface'],d['toAltitude'],announced))
+                if sendmessage and announced:
+                    if d['toAltitude'] == -1:
+                        message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: unlimited, flight is possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
+                    else:
+                        message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+str(d['toAltitude'])+' ft, flight is not possible!\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
         #deleted faa
         if data != []:
             for in_db in c.execute('SELECT begin, end, announced FROM faa').fetchall():

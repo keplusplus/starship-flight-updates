@@ -1,5 +1,6 @@
+from _typeshed import OpenBinaryModeUpdating
 from data_sources import weather
-import database
+import database, telebot
 
 class Status:
 
@@ -24,27 +25,13 @@ class Status:
             out+='Nothing big happening on current data❗\n'
         return out
 
-    def value_change_status(self, conn = None) -> str:   #called when new/change/remove closure/tfr
+    def value_change_status(self, conn) -> str:   #called when new/change/remove closure/tfr
         return ''
         if database.road_closure_active(conn=conn) != [] or database.faa_active(conn=conn) != []:
             return ''
         flight = weather.Weather().weather_text(weather.Weather().current_weather())[1] and weather.Weather().wind_text(weather.Weather().current_weather())[1] and database.road_closure_today(conn)[0] and database.faa_today(conn)[0]
         static = database.road_closure_today(conn)[0]
         out = ''
-        if Status()._last_status['flight'] is not None:
-            if Status()._last_status['flight'] != flight:
-                if flight:
-                    out = '\n<u><b>Flight is now possible today</b></u>❕\n'
-                else:
-                    out = '\n<u><b>Flight is no longer possible today</b></u>❗\n'
-            if Status()._last_status['static'] != static:
-                if static:
-                    out+= '<i>Static fire or wdr are now possible today</i>❕'
-                else:
-                    return '<i>Nothing is possible anymore today</i>❗'
-            if Status()._last_status['flight'] == flight and Status()._last_status['static'] == static:
-                out = '\n[no status change, flight: '+str(flight)+'|staticfire: '+str(static)+']'
-        Status()._last_status['flight'], Status()._last_status['static'] = flight, static
         return out
     
     def active_change(self, currently_active) -> str:
@@ -52,14 +39,16 @@ class Status:
         if Status()._last_active_status['flight'] != flight and Status()._last_active_status['static'] != static:
             if currently_active['closure'] != [] and currently_active['tfr'] != []:
                 if not weather.Weather().weather_text(weather.Weather().current_weather())[1]:
-                    return '\n<u>Flight is not possible due to weather!</u>❌\nStatic fire or wdr are still possible<i>\nWeather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+'</i>'
+                    return '\n<u>Flight is not possible due to weather!</u>🚀❌\nStatic fire or wdr are still possible<i>\nWeather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+'</i>'
                 elif not weather.Weather().wind_text(weather.Weather().current_weather())[1]:
-                    return '\n<u>Flight is not possible due to wind!</u>❌\nStatic fire or wdr are still possible<i>\nWind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+'</i>'
+                    return '\n<u>Flight is not possible due to wind!</u>🚀❌\nStatic fire or wdr are still possible<i>\nWind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+'</i>'
                 elif not weather.Weather().wind_text(weather.Weather().current_weather())[1] and not weather.Weather().weather_text(weather.Weather().current_weather())[1]:
-                    return '\n<u>Flight is not possible due to weather and wind!</u>❌\nStatic fire or wdr are still possible<i>\nWeather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+'\nWind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+'</i>'
+                    return '\n<u>Flight is not possible due to weather and wind!</u>🚀❌\nStatic fire or wdr are still possible<i>\nWeather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+'\nWind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+'</i>'
                 else:
                     return '\n<u><b>Flight is now possible</b></u>🚀✅'
             elif currently_active['closure'] != [] and currently_active['tfr'] == []:
+                if Status()._last_active_status['flight'] != []:
+                    return '\n<u>Flight is no longer possible!</u>🚀❌\nStatic fire or wdr are still possible!'
                 return '\n<u>Static fire or wdr are now possible!</u>'
             else:
                 return '\n<u>Nothing is currently possible!❌</u>'
