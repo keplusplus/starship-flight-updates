@@ -52,11 +52,11 @@ class Status:
         if Status()._last_active_status['flight'] != flight and Status()._last_active_status['static'] != static:
             if currently_active['closure'] != [] and currently_active['tfr'] != []:
                 if not weather.Weather().weather_text(weather.Weather().current_weather())[1]:
-                    return '\n<u>Flight is not possible due to weather!</u>❌<i>\n(Weather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+')</i>'
+                    return '\n<u>Flight is not possible due to weather!</u>❌\nStatic fire or wdr are still possible<i>\nWeather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+'</i>'
                 elif not weather.Weather().wind_text(weather.Weather().current_weather())[1]:
-                    return '\n<u>Flight is not possible due to wind!</u>❌<i>\n(Wind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+')</i>'
+                    return '\n<u>Flight is not possible due to wind!</u>❌\nStatic fire or wdr are still possible<i>\nWind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+'</i>'
                 elif not weather.Weather().wind_text(weather.Weather().current_weather())[1] and not weather.Weather().weather_text(weather.Weather().current_weather())[1]:
-                    return '\n<u>Flight is not possible due to weather and wind!</u>❌<i>\n(Weather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+')\n(Wind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+')</i>'
+                    return '\n<u>Flight is not possible due to weather and wind!</u>❌\nStatic fire or wdr are still possible<i>\nWeather: '+weather.Weather().weather_text(weather.Weather().current_weather())[0]+'\nWind: '+weather.Weather().wind_text(weather.Weather().current_weather())[0]+'</i>'
                 else:
                     return '\n<u><b>Flight is now possible</b></u>🚀✅'
             elif currently_active['closure'] != [] and currently_active['tfr'] == []:

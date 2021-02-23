@@ -1,8 +1,8 @@
 import telebot, discord
 
-def send_message(message, disable_link_preview = True):
+def send_message(message, disable_link_preview = True, color = 7707321):
     telebot.send_channel_message(message,disable_link_preview)
-    discord.send_discord_message(message,disable_link_preview)
+    discord.send_discord_message(message,disable_link_preview, color)
 
 def send_test_message(message, disable_link_preview = True):
     telebot.send_message(telebot.err_channel_id,message,disable_link_preview)
