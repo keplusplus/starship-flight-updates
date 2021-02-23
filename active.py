@@ -6,24 +6,24 @@ from status import Status
 
 currently_active = {'closure':[],'tfr':[]}
 
-def manage_closures(inlastmin = 20):
+def manage_closures(inlastmin = 2):
     if database.road_closure_active() != []:
         for x in database.road_closure_active():
             if x not in currently_active['closure']:
                 currently_active['closure'].append(x)
-                if x[0]+datetime.timedelta(minutes=inlastmin) > datetime.datetime.now()-datetime.timedelta(hours=1):
+                if x[0]+datetime.timedelta(minutes=inlastmin) > datetime.datetime.utcnow():
                     message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>Road closure now active!</b></a>\n(<i>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' UTC</i>)'+Status().active_change(currently_active))
     for x in currently_active['closure']:
         if x not in database.road_closure_active():
             currently_active['closure'].remove(x)
             message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>Road closure no longer active!</b></a>\n(<i><s>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' </s>UTC</i>)'+Status().active_change(currently_active))
 
-def manage_tfrs(inlastmin = 20):
+def manage_tfrs(inlastmin = 2):
     if database.faa_active() != []:
         for x in database.faa_active():
             if x not in currently_active['tfr']:
                 currently_active['tfr'].append(x)
-                if x[0]+datetime.timedelta(minutes=inlastmin) > datetime.datetime.now()-datetime.timedelta(hours=1):
+                if x[0]+datetime.timedelta(minutes=inlastmin) > datetime.datetime.utcnow():
                     message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR (unlimited) now active!</b></a>\n(<i>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' UTC</i>)'+Status().active_change(currently_active))
     for x in currently_active['tfr']:
         if x not in database.faa_active():
