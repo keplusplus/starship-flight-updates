@@ -1,4 +1,3 @@
-from _typeshed import OpenBinaryModeUpdating
 from data_sources import weather
 import database, telebot
 

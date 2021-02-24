@@ -87,27 +87,27 @@ def daily_update(): #every boca morning
 
 def regular_update(twit:twitter.Twitter):
     print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
-    try:
-        ccp = CameronCountyParser()
-        ccp.parse()
-        #ccp.closures.append({'begin': datetime.datetime(2021,2,9,15,28),'end': datetime.datetime(2021,2,9,15,30),'valid': True})
-        database.append_cameroncounty(ccp.closures)
+    #try:
+    ccp = CameronCountyParser()
+    ccp.parse()
+    #ccp.closures.append({'begin': datetime.datetime(2021,2,24,15,00),'end': datetime.datetime(2021,2,26,16,00),'valid': True})
+    database.append_cameroncounty(ccp.closures)
 
-        faa = FAAParser()
-        faa.parse()
-        #faa.tfrs.append({'begin':datetime.datetime(2021,2,9,21,27),'end':datetime.datetime(2021,2,9,21,29),'fromSurface':True,'toAltitude':-1})
-        database.append_faa(faa.tfrs)
+    faa = FAAParser()
+    faa.parse()
+    #faa.tfrs.append({'begin':datetime.datetime(2021,2,9,21,27),'end':datetime.datetime(2021,2,9,21,29),'fromSurface':True,'toAltitude':-1})
+    database.append_faa(faa.tfrs)
 
-        wiki = WikipediaParser()
-        wiki.parse()
-        #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
-        #database.append_history(wiki.starships)
+    wiki = WikipediaParser()
+    wiki.parse()
+    #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
+    #database.append_history(wiki.starships)
 
-        active.manage_twitter(twit)
-    except Exception as e:
-        telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
+    active.manage_twitter(twit)
+    #except Exception as e:
+    #    telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
-database.reset_database()
+#database.reset_database()
 def main():
     database.setup_database()
     twit = twitter.Twitter(20)

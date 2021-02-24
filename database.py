@@ -96,6 +96,47 @@ def faa_active(conn = None):  #in last min
         return out
     return []
 
+def __not_in_past(date:datetime.datetime):
+    return datetime.datetime.utcnow() < date
+
+def __is_utctoday(date:datetime.datetime): #true if date is today
+    return datetime.datetime.utcnow().date() == date.date()
+
+def __utcnow_between(start:datetime.datetime, end:datetime.datetime):  #true if now is between start and end
+    return start < datetime.datetime.utcnow() < end
+
+def __utctoday_or_between(start:datetime.datetime, end:datetime.datetime): #true if today or between
+    return (__is_utctoday(start) or __is_utctoday(end) or __utcnow_between(start,end)) and __not_in_past(end)
+
+def __announce(daily_time= datetime.time(13,0), pause = datetime.timedelta(hours=10)):   #true if pause hours before daily_time or after daily
+    return datetime.datetime.now().time() > daily_time or datetime.datetime.now().time() < daily_time - pause
+
+def __cameroncounty_valid_changes(sendmessage, d, in_db):   #test iv valid state changes
+    if in_db['valid'] != d['valid']:    #valid has changed
+        if sendmessage and __utctoday_or_between(d['begin'],d['end']) and (__announce() or in_db['announced']):
+            if d['valid']:  #now valid
+                message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has been rescheduled!</b></a>\n(<i>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)')
+            else:           #no longer valid
+                message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has been canceled!</b></a>\n(<i><s>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</s> UTC</i>)')
+
+def __cameroncounty_time_changes(sendmessage, d, in_db):    #test if time changes
+    if d['begin'] != in_db['begin'] or d['end'] != in_db['end']:    #times have changed
+        if sendmessage and (__utctoday_or_between(d['begin'],d['end']) or __utctoday_or_between(in_db['begin'],in_db['end'])) and (__announce() or in_db['announced']):
+            d['announced'] = True
+            message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has changed!</b></a>\n<u>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</u> (UTC)\n⬆️\n<i>From '+datetime_to_string(in_db['begin'])+' to '+datetime_to_string(in_db['end'])+'</i> (UTC)')
+
+def __cameroncounty_changes(sendmessage, d, in_db):
+    __cameroncounty_valid_changes(sendmessage,d,in_db)
+    __cameroncounty_time_changes(sendmessage,d,in_db)
+
+def __cameroncounty_new(sendmessage, d):
+    if sendmessage and __announce() and __utctoday_or_between(d['begin'],d['end']):
+        message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>A new road closure has been scheduled!</b></a>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> UTC)')
+
+def __cameroncounty_delete(sendmessage, in_db):
+    if sendmessage and in_db['announced'] and __utctoday_or_between(in_db['begin'],in_db['end']):
+        message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>This road closure has been removed:</b></a>\n(<i><s>From '+datetime_to_string(in_db['begin'])+' to '+datetime_to_string(in_db['end'])+'</s> UTC</i>)')
+
 def append_cameroncounty(data: list, sendmessage:bool = True, daily_time:datetime.datetime = datetime.time(13,0)):   #daily = daily update sendmessage -> does not want any changes as extra message
     conn = sqlite3.connect(db, timeout=20)
     c = conn.cursor()
@@ -103,35 +144,30 @@ def append_cameroncounty(data: list, sendmessage:bool = True, daily_time:datetim
         data_as_list = []   #needed to check if data in db was removed from live
         for d in data:
             d['begin'], d['end'] = to_utc_time(d['begin']), to_utc_time(d['end'])
+            #putting live data into list to compare what is missing later
             data_as_list.append((d['begin'], d['end']))
+
             if c.execute('SELECT * FROM closure WHERE begin = ? OR end = ?',(d['begin'],d['end'])).fetchone():   #in database
+                #data preparation
                 in_db = c.execute('SELECT begin,end,valid,announced FROM closure WHERE begin = ? OR end = ?',(d['begin'],d['end'])).fetchone()
-                if sendmessage and in_db[3]:
-                    if in_db[2] != d['valid']:  #valid changed
-                        if d['valid']:  #now valid
-                            message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has been rescheduled!</b></a>\n(<i>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+' UTC</i>)'+Status().value_change_status(conn))
-                        else:   #now unvalid
-                            message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has been canceled!</b></a>\n(<i><s>From "+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</s> UTC</i>)'+Status().value_change_status(conn))
-                announced = in_db[3]
-                if sql_to_datetime(in_db[0]) != d['begin'] or sql_to_datetime(in_db[1]) != d['end']:  #begin has changed
-                    if sendmessage and (datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow()):
-                        message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has changed!</b></a>\n<i>From "+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</i> (UTC)<i>\n⬇️\nFrom '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> (UTC)'+Status().value_change_status(conn))
-                        announced = True
-                c.execute('UPDATE closure SET begin = ?, end = ?, valid = ?, announced = ? WHERE begin = ? OR end = ?',(d['begin'],d['end'],d['valid'],announced,d['begin'],d['end']))
+                in_db = {'begin':sql_to_datetime(in_db[0]),'end':sql_to_datetime(in_db[1]),'valid':in_db[2],'announced':in_db[3]}
+                d['announced'] = in_db['announced']
+
+                #testing for changes
+                __cameroncounty_changes(sendmessage, d, in_db)
+                c.execute('UPDATE closure SET begin = ?, end = ?, valid = ?, announced = ? WHERE begin = ? OR end = ?',(d['begin'],d['end'],d['valid'],d['announced'],d['begin'],d['end']))
             else:   #not in db
-                announced = False
-                if datetime.datetime.now().time() > daily_time and d['begin'].date() <= datetime.date.today() and d['end'] > datetime.datetime.utcnow():
-                    announced = True
-                #c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
-                if sendmessage and announced:
-                    message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>A new road closure has been scheduled!</b></a>\n(<i>From '+datetime_to_string(d['begin'])+' to '+datetime_to_string(d['end'])+'</i> UTC)'+Status().value_change_status(conn))
+                __cameroncounty_new(sendmessage,d)
+                announced = (not sendmessage or __announce()) and __utctoday_or_between(d['begin'],d['end'])
                 c.execute('INSERT INTO closure(begin,end,valid,announced) VALUES(?,?,?,?)',(d['begin'],d['end'],d['valid'],announced))
         if data != []:
-            for in_db in c.execute('SELECT begin, end, announced, id FROM closure WHERE valid = True').fetchall():
-                if (sql_to_datetime(in_db[0]),sql_to_datetime(in_db[1])) not in data_as_list:
-                    if sendmessage and (((sql_to_datetime(in_db[0]) <= datetime.datetime.utcnow() <= sql_to_datetime(in_db[1])) or (in_db[2] and sql_to_datetime(in_db[0]).date() == datetime.datetime.utcnow().date() and sql_to_datetime(in_db[0]) > datetime.datetime.utcnow()))):
-                        message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>This road closure has been removed:</b></a>\n(<i><s>From '+datetime_to_string(sql_to_datetime(in_db[0]))+' to '+datetime_to_string(sql_to_datetime(in_db[1]))+'</s> UTC</i>)'+Status().value_change_status(conn))
-                    c.execute('DELETE FROM closure WHERE id = ?',(in_db[3],))
+            for in_db in c.execute('SELECT begin,end,valid,announced FROM closure WHERE valid = True').fetchall():
+                #data preparation
+                in_db = {'begin':sql_to_datetime(in_db[0]),'end':sql_to_datetime(in_db[1]),'valid':in_db[2],'announced':in_db[3]}
+
+                if (in_db['begin'],in_db['end']) not in data_as_list:   #true if closure no longer on site
+                    __cameroncounty_delete(sendmessage,in_db)
+                    c.execute('DELETE FROM closure WHERE begin = ? AND end = ?',(in_db['begin'],in_db['end']))
         conn.commit()
     except Exception as e:
         telebot.send_err_message('Error database-append-closure!\n\nException:\n' + str(e)) 
