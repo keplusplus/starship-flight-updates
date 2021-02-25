@@ -1,6 +1,6 @@
 from database import CameronCountyData, Database, FAAData
 import message,datetime,time, schedule, active, telebot
-from database import Database, CameronCountyData, FAAData
+from database import Database, CameronCountyData, FAAData, WikiData
 from status import Status
 from data_sources.weather import Weather
 from data_sources.cameron_county import CameronCountyParser
@@ -17,38 +17,42 @@ def daily_update():
         faa = FAAParser()
         faa.parse()
         FAAData().append_faa(faa.tfrs,False)
+        w = Weather().today_forecast()
+        if w == {}:
+            return
         print('>collected & waiting')
         #make sure the message is sent exactly at 13:00
         if (datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds() > 0:
             time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
-        message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().today_forecast()),color=16767232)
+        message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=w),color=16767232)
     except Exception as e:
         telebot.send_err_message('Error daily-message!\n\nException:\n' + str(e))
 
 def regular_update(twit:twitter.Twitter):
     print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
-    #try:
-    ccp = CameronCountyParser()
-    ccp.parse()
-    #ccp.closures.append({'begin': datetime.datetime(2021,2,24,15,00),'end': datetime.datetime(2021,2,26,16,00),'valid': True})
-    CameronCountyData().append_cameroncounty(ccp.closures)
+    try:
+        ccp = CameronCountyParser()
+        ccp.parse()
+        #ccp.closures.append({'begin': datetime.datetime(2021,2,24,15,00),'end': datetime.datetime(2021,2,26,16,00),'valid': True})
+        CameronCountyData().append_cameroncounty(ccp.closures)
 
-    faa = FAAParser()
-    faa.parse()
-    #faa.tfrs.append({'begin':datetime.datetime(2021,2,25,17,00),'end':datetime.datetime(2021,2,25,20,00),'fromSurface':True,'toAltitude':100})
-    FAAData().append_faa(faa.tfrs)
+        faa = FAAParser()
+        faa.parse()
+        #faa.tfrs.append({'begin':datetime.datetime(2021,2,25,17,00),'end':datetime.datetime(2021,2,25,20,00),'fromSurface':True,'toAltitude':100})
+        FAAData().append_faa(faa.tfrs)
 
-    wiki = WikipediaParser()
-    wiki.parse()
-    #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
-    #database.append_history(wiki.starships)
+        wiki = WikipediaParser()
+        wiki.parse()
+        #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
+        WikiData().append_history(wiki.starships)
 
-    active.manage_twitter(twit)
-    #except Exception as e:
-    #    telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
+        active.manage_twitter(twit)
+    except Exception as e:
+        telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
 #Database().reset_database()
 def main():
+    daily_update()
     Database().setup_database()
     twit = twitter.Twitter(0)
     twit.add_twitter_account('BocaChicaGal')
