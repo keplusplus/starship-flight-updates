@@ -1,116 +1,56 @@
-import database,message,datetime,time, schedule, active, telebot
+from database import CameronCountyData, Database, FAAData
+import message,datetime,time, schedule, active, telebot
+from database import Database, CameronCountyData, FAAData
 from status import Status
 from data_sources.weather import Weather
 from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
 from data_sources.wikipedia import WikipediaParser
 from data_sources import twitter
-#Gather current data -> every morning
-#schedule event[closure/faa] -> when new data
-#when schedulued task event: test if event still active: send tel message
-#when event active: look for extra data[plane/stream/tweet]
 
-
-def daily_update(): #every boca morning
+def daily_update():
     print('>daily')
     try:
         ccp = CameronCountyParser()
         ccp.parse()
-        database.append_cameroncounty(ccp.closures,False)
+        CameronCountyData().append_cameroncounty(ccp.closures,False)
         faa = FAAParser()
         faa.parse()
-        database.append_faa(faa.tfrs,False)
-        w = Weather().today_forecast()
-        if w == {}:
-            return
+        FAAData().append_faa(faa.tfrs,False)
         print('>collected & waiting')
         #make sure the message is sent exactly at 13:00
         if (datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds() > 0:
             time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
-        flight = (Weather().weather_text(w)[1] and Weather().wind_text(w)[1] and bool(database.road_closure_today()[0]) and database.faa_today()[0])
-        staticfire = bool(database.road_closure_today()[0])
-        if datetime.date.today().weekday() > 4 and not flight:
-            print('weekend and nothing possible')
-            return
-        flightStr = 'yes' if flight else 'no'
-        staticStr = 'yes' if staticfire else 'no'
-        #Header & Roadclosure
-        out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+database.datetime_to_string(datetime.datetime.utcnow())+' local: '+database.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
-        if database.road_closure_today()[0]:
-            out+= '✅\n'
-            for x in database.road_closure_today()[1:]:
-                out+= 'from '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' (UTC)'
-                out+= '\n<i>(local: '+database.datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+database.datetime_to_string(x[1]-datetime.timedelta(hours=6))+')</i>\n'
-        else:
-            out+= '❌\nnothing scheduled!\n'
-        #TFR
-        out+='<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR:</b></a>'
-        if database.faa_today()[0]:
-            out+='✅\n'
-        else:
-            out+='❌\n'
-            if len(database.faa_today()) != 1:
-                out+='(max alt. needs to be unlimited for flight)\n'
-        unlimited, limited = False, False
-        for x in database.faa_today()[1:]:
-            if x[3]:
-                unlimited = True
-                out+='from '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' (max alt.: unlimited)\n'
-                out+='<i>(local from '+database.datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+database.datetime_to_string(x[1])+')</i>\n'
-            else:
-                limited = True
-        if unlimited and limited:
-            out+='-----\n'
-        for x in database.faa_today()[1:]:
-            if not x[3]:
-                out+='<i>from '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' (max alt.: '+str(x[2])+' ft)</i>\n'
-        #Weather
-        out+='<a href="https://openweathermap.org/city/4720060"><b>Weather today:</b></a>'
-        if Weather().weather_text(w)[1]:
-            out+='✅\n'+Weather().weather_text(w)[0]+'\n'
-        else:
-            out+='❌\n'+Weather().weather_text(w)[0]+'\n'
-        #Wind
-        out+='<a href="https://openweathermap.org/city/4720060"><b>Wind:</b></a>'
-        if Weather().wind_text(w)[1]:
-            out+='✅\n'+Weather().wind_text(w)[0]+'\n'
-        else:
-            out+='❌\n'+Weather().wind_text(w)[0]+'\n'
-        #Flight Message
-        out += Status().daily_status(w)
-        out+='<i>(We will keep you updated if anything changes!)</i>'
-        message.send_message(out,color=16767232)
-        database.announce_today_closures()
-        database.announce_today_faas()
+        message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().today_forecast()),color=16767232)
     except Exception as e:
         telebot.send_err_message('Error daily-message!\n\nException:\n' + str(e))
 
 def regular_update(twit:twitter.Twitter):
     print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
-    try:
-        ccp = CameronCountyParser()
-        ccp.parse()
-        #ccp.closures.append({'begin': datetime.datetime(2021,2,9,15,28),'end': datetime.datetime(2021,2,9,15,30),'valid': True})
-        database.append_cameroncounty(ccp.closures)
+    #try:
+    ccp = CameronCountyParser()
+    ccp.parse()
+    #ccp.closures.append({'begin': datetime.datetime(2021,2,24,15,00),'end': datetime.datetime(2021,2,26,16,00),'valid': True})
+    CameronCountyData().append_cameroncounty(ccp.closures)
 
-        faa = FAAParser()
-        faa.parse()
-        #faa.tfrs.append({'begin':datetime.datetime(2021,2,9,21,27),'end':datetime.datetime(2021,2,9,21,29),'fromSurface':True,'toAltitude':-1})
-        database.append_faa(faa.tfrs)
+    faa = FAAParser()
+    faa.parse()
+    #faa.tfrs.append({'begin':datetime.datetime(2021,2,25,17,00),'end':datetime.datetime(2021,2,25,20,00),'fromSurface':True,'toAltitude':100})
+    FAAData().append_faa(faa.tfrs)
 
-        wiki = WikipediaParser()
-        wiki.parse()
-        #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
-        database.append_history(wiki.starships)
+    wiki = WikipediaParser()
+    wiki.parse()
+    #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
+    #database.append_history(wiki.starships)
 
-        active.manage_twitter(twit)
-    except Exception as e:
-        telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
+    active.manage_twitter(twit)
+    #except Exception as e:
+    #    telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
 
-#database.reset_database()
+#Database().reset_database()
 def main():
-    database.setup_database()
-    twit = twitter.Twitter(20)
+    Database().setup_database()
+    twit = twitter.Twitter(0)
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     regular_update(twit)

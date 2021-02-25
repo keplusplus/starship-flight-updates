@@ -1,10 +1,15 @@
-import telebot, discord
+import telebot, discord, datetime, status
+from data_sources.weather import Weather
 
 def send_message(message, disable_link_preview = True, color = 7707321):
+    if message == '':
+        return
     telebot.send_channel_message(message,disable_link_preview)
     discord.send_discord_message(message,disable_link_preview, color)
 
 def send_test_message(message, disable_link_preview = True):
+    if message == '':
+        return
     telebot.send_message(telebot.err_channel_id,message,disable_link_preview)
 
 def history_message(data:dict, changes:dict = {}) -> str:
@@ -32,4 +37,63 @@ def history_message(data:dict, changes:dict = {}) -> str:
     out+=data['status']+'\n'
     out+='<b>Flights: </b>'
     out+=str(data['flights'])+'\n'
+    return out
+
+def daily_update_message(closures, tfrs, weather) -> str:
+    from database import Database
+    
+    if weather == {}:
+        return
+    flight = (Weather().weather_text(weather)[1] and Weather().wind_text(weather)[1] and closures[0] and tfrs[0])
+    staticfire = closures[0]
+    if datetime.date.today().weekday() > 4 and not flight:
+        print('weekend and nothing possible')
+        return ''
+    flightStr = 'yes' if flight else 'no'
+    staticStr = 'yes' if staticfire else 'no'
+    #Header & Roadclosure
+    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+Database().datetime_to_string(datetime.datetime.utcnow())+' local: '+Database().datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
+    if closures[0]:
+        out+= '✅\n'
+        for x in closures[1:]:
+            out+= 'from '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' (UTC)'
+            out+= '\n<i>(local: '+Database().datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+Database().datetime_to_string(x[1]-datetime.timedelta(hours=6))+')</i>\n'
+    else:
+        out+= '❌\nnothing scheduled!\n'
+    #TFR
+    out+='<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR:</b></a>'
+    if tfrs[0]:
+        out+='✅\n'
+    else:
+        out+='❌\n'
+        if len(tfrs) != 1:
+            out+='(max alt. needs to be unlimited for flight)\n'
+    unlimited, limited = False, False
+    for x in tfrs[1:]:
+        if x[3]:
+            unlimited = True
+            out+='from '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' (max alt.: unlimited)\n'
+            out+='<i>(local from '+Database().datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+Database().datetime_to_string(x[1])+')</i>\n'
+        else:
+            limited = True
+    if unlimited and limited:
+        out+='-----\n'
+    for x in tfrs[1:]:
+        if not x[3]:
+            out+='<i>from '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' (max alt.: '+str(x[2])+' ft)</i>\n'
+    #Weather
+    out+='<a href="https://openweathermap.org/city/4720060"><b>Weather today:</b></a>'
+    if Weather().weather_text(weather)[1]:
+        out+='✅\n'+Weather().weather_text(weather)[0]+'\n'
+    else:
+        out+='❌\n'+Weather().weather_text(weather)[0]+'\n'
+    #Wind
+    out+='<a href="https://openweathermap.org/city/4720060"><b>Wind:</b></a>'
+    if Weather().wind_text(weather)[1]:
+        out+='✅\n'+Weather().wind_text(weather)[0]+'\n'
+    else:
+        out+='❌\n'+Weather().wind_text(weather)[0]+'\n'
+    #Flight Message
+    out += status.Status().daily_status(weather)
+    out+='<i>(We will keep you updated if anything changes!)</i>'
     return out
