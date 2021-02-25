@@ -1,5 +1,4 @@
 from data_sources import weather
-import database, telebot
 
 class Status:
 
@@ -10,9 +9,10 @@ class Status:
         pass
 
     def daily_status(self, w) -> str:  #called by min-daily
+        from database import CameronCountyData, FAAData
         out = ''
-        flight = (weather.Weather().weather_text(w)[1] and weather.Weather().wind_text(w)[1] and bool(database.road_closure_today()[0]) and database.faa_today()[0])
-        staticfire = bool(database.road_closure_today()[0])
+        flight = weather.Weather().weather_text(w)[1] and weather.Weather().wind_text(w)[1] and CameronCountyData().road_closure_today()[0] and FAAData().faa_today()[0]
+        staticfire = CameronCountyData().road_closure_today()[0]
         if flight:
             out+='\n<u><b>Flight is possible today</b></u>🚀✅\nStatic fire or wdr are also possible\n'
         else:

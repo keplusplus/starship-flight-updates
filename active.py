@@ -1,34 +1,35 @@
-import database, time, telebot, datetime, message
+import time, datetime, message
 from data_sources.weather import Weather
+from database import Database, CameronCountyData, FAAData
 from data_sources import twitter, youtube
 from threading import Thread
 from status import Status
 
 currently_active = {'closure':[],'tfr':[]}
 
-def manage_closures(inlastmin = 2):
-    if database.road_closure_active() != []:
-        for x in database.road_closure_active():
+def manage_closures(inlastmin = 0):
+    if CameronCountyData().road_closure_active() != []:
+        for x in CameronCountyData().road_closure_active():
             if x not in currently_active['closure']:
                 currently_active['closure'].append(x)
                 if x[0]+datetime.timedelta(minutes=inlastmin) > datetime.datetime.utcnow():
-                    message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>Road closure now active!</b></a>\n(<i>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' UTC</i>)'+Status().active_change(currently_active))
+                    message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>Road closure now active!</b></a>\n(<i>From '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' UTC</i>)'+Status().active_change(currently_active))
     for x in currently_active['closure']:
-        if x not in database.road_closure_active():
+        if x not in CameronCountyData().road_closure_active():
             currently_active['closure'].remove(x)
-            message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>Road closure no longer active!</b></a>\n(<i><s>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' </s>UTC</i>)'+Status().active_change(currently_active))
+            message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>Road closure no longer active!</b></a>\n(<i><s>From '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' </s>UTC</i>)'+Status().active_change(currently_active))
 
-def manage_tfrs(inlastmin = 2):
-    if database.faa_active() != []:
-        for x in database.faa_active():
+def manage_tfrs(inlastmin = 0):
+    if FAAData().faa_active() != []:
+        for x in FAAData().faa_active():
             if x not in currently_active['tfr']:
                 currently_active['tfr'].append(x)
                 if x[0]+datetime.timedelta(minutes=inlastmin) > datetime.datetime.utcnow():
-                    message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR (unlimited) now active!</b></a>\n(<i>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+' UTC</i>)'+Status().active_change(currently_active))
+                    message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR (unlimited) now active!</b></a>\n(<i>From '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' UTC</i>)'+Status().active_change(currently_active))
     for x in currently_active['tfr']:
-        if x not in database.faa_active():
+        if x not in FAAData().faa_active():
             currently_active['tfr'].remove(x)
-            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR (unlimited) no longer active!</b></a>\n(<i><s>From '+database.datetime_to_string(x[0])+' to '+database.datetime_to_string(x[1])+'</s> UTC</i>)'+Status().active_change(currently_active))
+            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR (unlimited) no longer active!</b></a>\n(<i><s>From '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+'</s> UTC</i>)'+Status().active_change(currently_active))
 
 def twitter_filter(user:str, text:str) -> bool:
     f = {
@@ -78,7 +79,7 @@ def manage_youtube(yt:youtube.Youtube()):
 
 def main(twit:twitter.Twitter):
     print('>starting active-main loop')
-    yt = youtube.Youtube(20)
+    yt = youtube.Youtube(0)
     while 1:
         manage_closures()
         manage_tfrs()
