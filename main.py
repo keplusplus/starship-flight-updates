@@ -52,7 +52,6 @@ def regular_update(twit:twitter.Twitter):
 
 #Database().reset_database()
 def main():
-    daily_update()
     Database().setup_database()
     twit = twitter.Twitter(0)
     twit.add_twitter_account('BocaChicaGal')
