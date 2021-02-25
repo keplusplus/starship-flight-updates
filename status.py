@@ -1,3 +1,4 @@
+import database
 from data_sources import weather
 
 class Status:
@@ -9,7 +10,7 @@ class Status:
         pass
 
     def daily_status(self, w) -> str:  #called by min-daily
-        from database import CameronCountyData, FAAData
+        CameronCountyData, FAAData = database.CameronCountyData, database.FAAData
         out = ''
         flight = weather.Weather().weather_text(w)[1] and weather.Weather().wind_text(w)[1] and CameronCountyData().road_closure_today()[0] and FAAData().faa_today()[0]
         staticfire = CameronCountyData().road_closure_today()[0]

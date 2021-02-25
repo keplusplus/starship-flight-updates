@@ -1,4 +1,4 @@
-import telebot, discord, datetime, status
+import telebot, discord, datetime, status, database
 from data_sources.weather import Weather
 
 def send_message(message, disable_link_preview = True, color = 7707321):
@@ -40,10 +40,8 @@ def history_message(data:dict, changes:dict = {}) -> str:
     return out
 
 def daily_update_message(closures, tfrs, weather) -> str:
-    from database import Database
+    Database = database.Database
     
-    if weather == {}:
-        return
     flight = (Weather().weather_text(weather)[1] and Weather().wind_text(weather)[1] and closures[0] and tfrs[0])
     staticfire = closures[0]
     if datetime.date.today().weekday() > 4 and not flight:
