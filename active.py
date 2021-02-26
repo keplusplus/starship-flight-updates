@@ -7,7 +7,7 @@ from status import Status
 
 currently_active = {'closure':[],'tfr':[]}
 
-def manage_closures(inlastmin = 0):
+def manage_closures(inlastmin = 1):
     if CameronCountyData().road_closure_active() != []:
         for x in CameronCountyData().road_closure_active():
             if x not in currently_active['closure']:
@@ -19,7 +19,7 @@ def manage_closures(inlastmin = 0):
             currently_active['closure'].remove(x)
             message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>Road closure no longer active!</b></a>\n(<i><s>From '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' </s>UTC</i>)'+Status().active_change(currently_active))
 
-def manage_tfrs(inlastmin = 0):
+def manage_tfrs(inlastmin = 1):
     if FAAData().faa_active() != []:
         for x in FAAData().faa_active():
             if x not in currently_active['tfr']:
