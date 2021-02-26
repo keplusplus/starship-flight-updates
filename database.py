@@ -71,7 +71,7 @@ class CameronCountyData:
         return (self.__is_utctoday(start) or self.__is_utctoday(end) or self.__utcnow_between(start,end)) and self.__not_in_past(end)
 
     def __announce(self, daily_time= datetime.time(13,0), pause = datetime.timedelta(hours=6)):   #true if pause hours before daily_time or after daily
-        return datetime.datetime.now().time() > daily_time or datetime.datetime.now().time() < daily_time - pause
+        return datetime.datetime.now().time() > daily_time or datetime.datetime.now().time() < (datetime.combine(datetime.date.today(), daily_time) - pause).time()
 
     def __cameroncounty_valid_changes(self, sendmessage, d, in_db):   #test iv valid state changes
         if in_db['valid'] != d['valid']:    #valid has changed
@@ -175,7 +175,7 @@ class FAAData:
         return (self.__is_utctoday(start) or self.__is_utctoday(end) or self.__utcnow_between(start,end)) and self.__not_in_past(end)
 
     def __announce(self, daily_time= datetime.time(13,0), pause = datetime.timedelta(hours=6)):   #true if pause hours before daily_time or after daily
-        return datetime.datetime.now().time() > daily_time or datetime.datetime.now().time() < daily_time - pause
+        return datetime.datetime.now().time() > daily_time or datetime.datetime.now().time() <  (datetime.combine(datetime.date.today(), daily_time) - pause).time()
 
     def __faa_altitude_changes(self, sendmessage, d, in_db):
         if sendmessage and self.__utctoday_or_between_not_past(d['begin'],d['end']) and (self.__announce() or in_db['announced']):
