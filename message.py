@@ -61,12 +61,12 @@ def daily_update_message(closures, tfrs, weather) -> str:
     flightStr = 'yes' if flight else 'no'
     staticStr = 'yes' if staticfire else 'no'
     #Header & Roadclosure
-    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+db.datetime_to_string(datetime.datetime.utcnow())+' local: '+db.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
+    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+db.datetime_to_string(datetime.datetime.utcnow())+' local: '+db.datetime_to_local_string(datetime.datetime.utcnow())+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
     if closures[0]:
         out+= '✅\n'
         for x in closures[1:]:
             out+= 'from '+db.datetime_to_string(x[0])+' to '+db.datetime_to_string(x[1])+' (UTC)'
-            out+= '\n<i>(local: '+db.datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+db.datetime_to_string(x[1]-datetime.timedelta(hours=6))+')</i>\n'
+            out+= '\n<i>(local: '+db.datetime_to_local_string(x[0])+' to '+db.datetime_to_local_string(x[1])+')</i>\n'
     else:
         out+= '❌\nnothing scheduled!\n'
     #TFR
@@ -82,7 +82,7 @@ def daily_update_message(closures, tfrs, weather) -> str:
         if x[3]:
             unlimited = True
             out+='from '+db.datetime_to_string(x[0])+' to '+db.datetime_to_string(x[1])+' (max alt.: unlimited)\n'
-            out+='<i>(local from '+db.datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+db.datetime_to_string(x[1]-datetime.timedelta(hours=6))+')</i>\n'
+            out+='<i>(local from '+db.datetime_to_local_string(x[0])+' to '+db.datetime_to_local_string(x[1])+')</i>\n'
         else:
             limited = True
     if unlimited and limited:
