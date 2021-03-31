@@ -40,6 +40,9 @@ class Database:
         if dtime.date() == datetime.date.today():
             return dtime.strftime('%H:%M')
         return dtime.strftime('%b %d %H:%M')
+    
+    def sql_to_datetime(self, date: str) -> datetime.datetime:
+        return datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S')
 
     def datetime_to_local_string(self, dtime: datetime, timezone = 'US/Central') -> str:
         return self.datetime_to_string(pytz.timezone(pytz.utc).localize(time).astimezone(timezone).replace(tzinfo=None))
