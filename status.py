@@ -35,6 +35,7 @@ class Status:
         return out
     
     def active_change(self, currently_active) -> str:
+        return ''
         flight, static = (weather.Weather().wind_text(weather.Weather().current_weather())[1] and weather.Weather().wind_text(weather.Weather().current_weather())[1] and (currently_active['closure'] != []) and (currently_active['tfr'] != [])), (currently_active['closure'] != [])
         if Status()._last_active_status['flight'] != flight and Status()._last_active_status['static'] != static:
             if currently_active['closure'] != [] and currently_active['tfr'] != []:
