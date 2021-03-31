@@ -1,6 +1,17 @@
 import telebot, discord, datetime, status, database
 from data_sources.weather import Weather
 
+class ErrMessage:
+    errMessages = {}    #key = errMessage; value = datetime
+
+    def __init__(self) -> None:
+        pass
+
+    def sendErrMessage(self, message, mustPassedHours = 2):
+        if ErrMessage.errMessages.get(message, datetime.datetime.min) < datetime.datetime.now() - datetime.timedelta(hours=mustPassedHours):  #if err not in last 2 hours
+            telebot.send_err_message(message)
+        ErrMessage.errMessages[message] = datetime.datetime.now()
+
 def send_message(message, disable_link_preview = True, color = 7707321):
     if message == '':
         return
@@ -40,7 +51,7 @@ def history_message(data:dict, changes:dict = {}) -> str:
     return out
 
 def daily_update_message(closures, tfrs, weather) -> str:
-    Database = database.Database
+    db = database.Database()
     
     flight = (Weather().weather_text(weather)[1] and Weather().wind_text(weather)[1] and closures[0] and tfrs[0])
     staticfire = closures[0]
@@ -50,12 +61,12 @@ def daily_update_message(closures, tfrs, weather) -> str:
     flightStr = 'yes' if flight else 'no'
     staticStr = 'yes' if staticfire else 'no'
     #Header & Roadclosure
-    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+Database().datetime_to_string(datetime.datetime.utcnow())+' local: '+Database().datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
+    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+db.datetime_to_string(datetime.datetime.utcnow())+' local: '+db.datetime_to_string(datetime.datetime.utcnow()-datetime.timedelta(hours=6))+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
     if closures[0]:
         out+= '✅\n'
         for x in closures[1:]:
-            out+= 'from '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' (UTC)'
-            out+= '\n<i>(local: '+Database().datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+Database().datetime_to_string(x[1]-datetime.timedelta(hours=6))+')</i>\n'
+            out+= 'from '+db.datetime_to_string(x[0])+' to '+db.datetime_to_string(x[1])+' (UTC)'
+            out+= '\n<i>(local: '+db.datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+db.datetime_to_string(x[1]-datetime.timedelta(hours=6))+')</i>\n'
     else:
         out+= '❌\nnothing scheduled!\n'
     #TFR
@@ -70,15 +81,15 @@ def daily_update_message(closures, tfrs, weather) -> str:
     for x in tfrs[1:]:
         if x[3]:
             unlimited = True
-            out+='from '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' (max alt.: unlimited)\n'
-            out+='<i>(local from '+Database().datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+Database().datetime_to_string(x[1])+')</i>\n'
+            out+='from '+db.datetime_to_string(x[0])+' to '+db.datetime_to_string(x[1])+' (max alt.: unlimited)\n'
+            out+='<i>(local from '+db.datetime_to_string(x[0]-datetime.timedelta(hours=6))+' to '+db.datetime_to_string(x[1]-datetime.timedelta(hours=6))+')</i>\n'
         else:
             limited = True
     if unlimited and limited:
         out+='-----\n'
     for x in tfrs[1:]:
         if not x[3]:
-            out+='<i>from '+Database().datetime_to_string(x[0])+' to '+Database().datetime_to_string(x[1])+' (max alt.: '+str(x[2])+' ft)</i>\n'
+            out+='<i>from '+db.datetime_to_string(x[0])+' to '+db.datetime_to_string(x[1])+' (max alt.: '+str(x[2])+' ft)</i>\n'
     #Weather
     out+='<a href="https://openweathermap.org/city/4720060"><b>Weather today:</b></a>'
     if Weather().weather_text(weather)[1]:

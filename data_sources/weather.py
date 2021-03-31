@@ -19,7 +19,7 @@ class Weather:
             return {'temp':r['temp']['day'],'feels_like':r['feels_like']['day'],'pressure':r['pressure'],'humidity':r['humidity'],'wind_speed':round(r['wind_speed']*3.6,2),'wind_deg':r['wind_deg'],'weather':r['weather'][0]}
         except Exception as e:
             if e is not requests.ConnectionError:
-                telebot.send_err_message('Error Weather-today-forecast!\n\nException:\n' + str(e))
+                message.ErrMessage().sendErrMessage('Error Weather-today-forecast!\n\nException:\n' + str(e))
             return {}
 
     def current_weather(self, sincelastmins = 20):
@@ -31,10 +31,10 @@ class Weather:
             return self._last_current_weather['data']
         except Exception as e:
             if e is not requests.ConnectionError:
-                telebot.send_err_message('Error Weather-current-weather!\n\nException:\n' + str(e))
+                message.ErrMessage().sendErrMessage('Error Weather-current-weather!\n\nException:\n' + str(e))
             return {}
 
-    def wind_text(self,w:dict, wind_limit = 32):
+    def wind_text(self,w:dict, wind_limit = 30):
         wind_speed = w['wind_speed']
         if wind_speed > wind_limit:  #windspeed > 20mph
             return ('Too windy ('+str(w['wind_speed'])+' km/h, max:30km/h)', False)
@@ -78,4 +78,4 @@ class Weather:
                 out+= ' '+self.wind_text(w)[0]+'</i>'
                 message.send_message(out+status.Status().active_change(currently_active))
         except Exception as e:
-            telebot.send_err_message('Error Weather-weather-change!\n\nException:\n' + str(e))
+            message.ErrMessage().sendErrMessage('Error Weather-weather-change!\n\nException:\n' + str(e))

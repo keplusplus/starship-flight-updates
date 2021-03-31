@@ -131,7 +131,7 @@ class CameronCountyData:
                         c.execute('DELETE FROM closure WHERE begin = ? AND end = ?',(in_db['begin'],in_db['end']))
             conn.commit()
         except Exception as e:
-            telebot.send_err_message('Error database-append-closure!\n\nException:\n' + str(e)) 
+            message.ErrMessage().sendErrMessage('Error database-append-closure!\n\nException:\n' + str(e))
     
     def road_closure_today(self, conn = None):   #for daily update
         if conn is None:
@@ -202,32 +202,32 @@ class FAAData:
     def append_faa(self, data, sendmessage:bool = True, daily_time:datetime.datetime = datetime.time(13,0)):
         conn = sqlite3.connect(db, timeout=20)
         c = conn.cursor()
-        #try:
-        data_as_list = []   #needed to check if data in db was removed from live
-        for d in data:
-            data_as_list.append((d['begin'], d['end']))
-            if c.execute('SELECT * FROM faa WHERE begin = ? AND end = ?',(d['begin'], d['end'])).fetchone():   #in db
-                #changed faa
-                in_db = self.__faa_in_db_prepare(c.execute('SELECT begin,end,toAltitude,announced FROM faa WHERE begin = ? AND end = ?',(d['begin'], d['end'])).fetchone())
-                self.__faa_altitude_changes(sendmessage,d,in_db)
-                c.execute('UPDATE faa SET fromSurface = ?, toAltitude = ? WHERE begin = ? AND end = ?',(d['fromSurface'],d['toAltitude'],d['begin'], d['end']))
-            else:   #not in db
-                #new faa
-                self.__faa_new(sendmessage,d)
-                announced = (not sendmessage or self.__announce()) and self.__utctoday_or_between_not_past(d['begin'],d['end'])
-                c.execute('INSERT INTO faa(begin,end,fromSurface,toAltitude,announced) VALUES(?,?,?,?,?)',(d['begin'],d['end'],d['fromSurface'],d['toAltitude'],announced))
-        #deleted faa
-        if data != []:
-            for in_db in c.execute('SELECT begin,end,toAltitude,announced FROM faa').fetchall():
-                #data preparation
-                in_db = self.__faa_in_db_prepare(in_db)
+        try:
+            data_as_list = []   #needed to check if data in db was removed from live
+            for d in data:
+                data_as_list.append((d['begin'], d['end']))
+                if c.execute('SELECT * FROM faa WHERE begin = ? AND end = ?',(d['begin'], d['end'])).fetchone():   #in db
+                    #changed faa
+                    in_db = self.__faa_in_db_prepare(c.execute('SELECT begin,end,toAltitude,announced FROM faa WHERE begin = ? AND end = ?',(d['begin'], d['end'])).fetchone())
+                    self.__faa_altitude_changes(sendmessage,d,in_db)
+                    c.execute('UPDATE faa SET fromSurface = ?, toAltitude = ? WHERE begin = ? AND end = ?',(d['fromSurface'],d['toAltitude'],d['begin'], d['end']))
+                else:   #not in db
+                    #new faa
+                    self.__faa_new(sendmessage,d)
+                    announced = (not sendmessage or self.__announce()) and self.__utctoday_or_between_not_past(d['begin'],d['end'])
+                    c.execute('INSERT INTO faa(begin,end,fromSurface,toAltitude,announced) VALUES(?,?,?,?,?)',(d['begin'],d['end'],d['fromSurface'],d['toAltitude'],announced))
+            #deleted faa
+            if data != []:
+                for in_db in c.execute('SELECT begin,end,toAltitude,announced FROM faa').fetchall():
+                    #data preparation
+                    in_db = self.__faa_in_db_prepare(in_db)
 
-                if (in_db['begin'],in_db['end']) not in data_as_list:
-                    self.__faa_delete(sendmessage, in_db)
-                    c.execute('DELETE FROM faa WHERE begin = ? AND end = ?',(in_db['begin'],in_db['end']))
-        conn.commit()
-        #except Exception as e:
-        #    telebot.send_err_message('Error database-append-faa!\n\nException:\n' + str(e))
+                    if (in_db['begin'],in_db['end']) not in data_as_list:
+                        self.__faa_delete(sendmessage, in_db)
+                        c.execute('DELETE FROM faa WHERE begin = ? AND end = ?',(in_db['begin'],in_db['end']))
+            conn.commit()
+        except Exception as e:
+            message.ErrMessage().sendErrMessage('Error database-append-faa!\n\nException:\n' + str(e))
 
     def faa_today(self, conn = None):
         if conn is None:

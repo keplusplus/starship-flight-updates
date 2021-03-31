@@ -17,16 +17,14 @@ def daily_update():
         faa = FAAParser()
         faa.parse()
         FAAData().append_faa(faa.tfrs,False)
-        w = Weather().today_forecast()
-        if w == {}:
-            return
         print('>collected & waiting')
         #make sure the message is sent exactly at 13:00
-        if (datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds() > 0:
-            time.sleep((datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds())
-        message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=w),color=16767232)
+        wait = (datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds()
+        if wait > 0:
+            time.sleep(wait)
+        message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().today_forecast()),color=16767232)
     except Exception as e:
-        telebot.send_err_message('Error daily-message!\n\nException:\n' + str(e))
+        message.ErrMessage().sendErrMessage('Error daily-message!\n\nException:\n' + str(e))
 
 def regular_update(twit:twitter.Twitter):
     print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
@@ -48,7 +46,7 @@ def regular_update(twit:twitter.Twitter):
 
         active.manage_twitter(twit)
     except Exception as e:
-        telebot.send_err_message('Error regular-update!\n\nException:\n' + str(e))
+        message.ErrMessage().sendErrMessage('Error regular-update!\n\nException:\n' + str(e))
 
 #Database().reset_database()
 def main():
