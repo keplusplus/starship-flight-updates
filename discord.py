@@ -2,7 +2,8 @@ from typing import Text
 import requests
 from data_sources import dotenv_parser
 
-url = dotenv_parser.get_value('.env','DISCORD_URL')
+webhook_url = dotenv_parser.get_value('.env','DISCORD_URL')
+error_webhook_url = dotenv_parser.get_value('.env','DISCORD_ERROR')
 
 def handle_link(text:str , disable_link_preview:bool):  #rekursive
     if '<a' not in text:
@@ -23,13 +24,16 @@ def handle_link(text:str , disable_link_preview:bool):  #rekursive
         link = '<'+link+'>'
     return handle_link(beforelink+'['+linktext+']('+link+')'+afterlink+preview,disable_link_preview)
 
-def send_discord_message(text:str, disable_link_preview = False, color = 7707321):
+def send_discord_message(text:str, webhook = webhook_url,disable_link_preview = False, color = 7707321):
     text = text.replace('<b>','**').replace('</b>','**')    #bold
     text = text.replace('<u>','__').replace('</u>','__')    #underline
     text = text.replace('<i>','_').replace('</i>','_')      #italic
     text = text.replace('<s>','~~').replace('</s>','~~')    #strike
     text = handle_link(text,disable_link_preview)
     if disable_link_preview:
-        requests.post(url, json = {'embeds':[{'description':text,'color': color},]}) #embed
+        requests.post(webhook, json = {'embeds':[{'description':text,'color': color},]}) #embed
     else:
-        requests.post(url, json = {'content':text})
+        requests.post(webhook, json = {'content':text})
+
+def send_discord_error_message(text:str, disable_link_preview = True, color = 13632027):
+    send_discord_message(text,webhook = error_webhook_url, disable_link_preview = disable_link_preview, color = color)
