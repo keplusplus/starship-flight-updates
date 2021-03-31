@@ -1,4 +1,4 @@
-import telebot, discord, datetime, status, database
+import telebot, discord, datetime, status, database, sys, os
 from data_sources.weather import Weather
 
 class ErrMessage:
@@ -7,7 +7,13 @@ class ErrMessage:
     def __init__(self) -> None:
         pass
 
+    def errorInfo(self) -> str:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        return '\n\nType:\n'+str(exc_type)+'\n\nLocation\nFile: '+str(fname)+'\nLine: '+str(exc_tb.tb_lineno)
+
     def sendErrMessage(self, message, mustPassedHours = 2):
+        message += self.errorInfo()
         if ErrMessage.errMessages.get(message, datetime.datetime.min) < datetime.datetime.now() - datetime.timedelta(hours=mustPassedHours):  #if err not in last 2 hours
             telebot.send_err_message(message)
         ErrMessage.errMessages[message] = datetime.datetime.now()
