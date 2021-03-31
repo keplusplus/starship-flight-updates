@@ -1,3 +1,4 @@
+from message import ErrMessage
 from data_sources import library_helper
 library_helper.assure_ext_library('BeautifulSoup4')
 from bs4 import BeautifulSoup
@@ -113,5 +114,5 @@ class FAAParser:
 
             return self.tfrs
         except Exception as e:
-            telebot.send_err_message('Error parsing FAA TFRs!\n\nException:\n' + str(e))
+            ErrMessage().sendErrMessage('Error parsing FAA TFRs!\n\nException:\n' + str(e))
             return []
