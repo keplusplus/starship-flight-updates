@@ -1,3 +1,4 @@
+from message import ErrMessage
 import requests, telebot
 from datetime import timedelta, datetime
 
@@ -32,7 +33,7 @@ class Twitter:
         except Exception as e:
             self.logger.warning('[twitter] | Error occured in last request - {}'.format(str(e)))
             if e is not requests.ConnectionError:
-                telebot.send_err_message('Error Twitter-req-json!\n\nException:\n' + str(e))
+                ErrMessage().sendErrMessage('Error Twitter-req-json!\n\nException:\n' + str(e))
             return None
 
     def __init__(self, timespan=0, logger=logger.StarshipLogger('twitter.log')):

@@ -33,19 +33,19 @@ def manage_tfrs(inlastmin = 1):
 
 def twitter_filter(user:str, text:str) -> bool:
     f = {
-    'SpaceX':[
-        'Starship',
-        'flight test'
-    ],
-    'elonmusk':[
-        'Starship',
-        'SN'
-    ],
-    'BocaChicaGal':[
-        'Alert',
-        'evacuation',
-        'notice'
-    ]
+        'SpaceX':[
+            'Starship',
+            'flight test'
+        ],
+        'elonmusk':[
+            'Starship',
+            'SN'
+        ],
+        'BocaChicaGal':[
+            'Alert',
+            'evac',
+            'notice'
+        ]
     }
     params = f[user]
     for p in params:
@@ -55,8 +55,10 @@ def twitter_filter(user:str, text:str) -> bool:
 
 def handle_elon(twit:twitter.Twitter):
     if twit.get_Name('elonmusk') is None and currently_active['closure']!=[] and currently_active['tfr']!=[]:
+        print('add elon')
         twit.add_twitter_account('elonmusk')
-    elif twit.get_Name('elonmusk') is not None:
+    elif twit.get_Name('elonmusk') is not None and not (currently_active['closure']!=[] and currently_active['tfr']!=[]):
+        print('remove elon')
         twit.remove_twitter_account('elonmusk')
 
 def manage_twitter(twit:twitter.Twitter):
@@ -67,7 +69,6 @@ def manage_twitter(twit:twitter.Twitter):
     for x in resp:
         for tweet in resp[x]:
             link = 'https://twitter.com/'+x+'/status/'+str(tweet['id'])
-            #if x in ['elonmusk','SpaceX']:    #usernames where filter is needed
             if twitter_filter(x, tweet['text']):
                 message.send_message('<a href="'+link+'">‌‌<b>Tweet by '+twit.get_Name(x)+'</b>\n(@'+x+' on Twitter)</a>',False)
 
@@ -79,7 +80,7 @@ def manage_youtube(yt:youtube.Youtube()):
 
 def main(twit:twitter.Twitter):
     print('>starting active-main loop')
-    yt = youtube.Youtube(0)
+    yt = youtube.Youtube()
     while 1:
         manage_closures()
         manage_tfrs()

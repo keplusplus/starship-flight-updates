@@ -1,4 +1,4 @@
-import requests, json, datetime
+import requests, datetime
 from data_sources import library_helper, dotenv_parser
 library_helper.assure_ext_library('xmltodict')
 import xmltodict
@@ -9,7 +9,7 @@ class Youtube:
 
     APIKEY = dotenv_parser.get_value('.env','YOUTUBE_KEY')
 
-    def __init__(self, timespan=0):
+    def __init__(self, timespan=20):
         self.timespan = timespan
         self.latest_video = {}
         self.channels = ['UCtI0Hodo5o5dUb67FeUjDeA',]
@@ -21,16 +21,19 @@ class Youtube:
 
     def _go_trough_all_videos(self, channel):
         out = []
-        last_time = datetime.datetime.now()-datetime.timedelta(minutes=self.timespan)
+        last_time = datetime.datetime.utcnow()-datetime.timedelta(minutes=self.timespan)
         if channel in self.latest_video:
             last_time = self.latest_video[channel]
         data = None
+        print(last_time)
         try:
-            requests.get('https://www.youtube.com/feeds/videos.xml?',{'channel_id':channel})
+            data = requests.get('https://www.youtube.com/feeds/videos.xml?',{'channel_id':channel})
         except:
             pass
         if data is None: return None
+
         for entry in reversed(xmltodict.parse(data.content)['feed']['entry']):
+            print(entry['published'])
             if datetime.datetime.strptime(entry['published'],"%Y-%m-%dT%H:%M:%S%z").replace(tzinfo=None) > last_time:
                 last_time = datetime.datetime.strptime(entry['published'],"%Y-%m-%dT%H:%M:%S%z").replace(tzinfo=None)
                 if self._filter(entry['media:group']['media:title']):   #print(json.dumps(entry,indent=2,sort_keys=False))
@@ -42,7 +45,7 @@ class Youtube:
         out = []
         for channel in self.channels:
             resp = self._go_trough_all_videos(channel)
+            print(resp)
             if resp is None: return None
             out += resp
         return out
-
