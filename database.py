@@ -44,8 +44,8 @@ class Database:
     def sql_to_datetime(self, date: str) -> datetime.datetime:
         return datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S')
 
-    def datetime_to_local_string(self, dtime: datetime, timezone = 'US/Central') -> str:
-        return self.datetime_to_string(pytz.timezone(pytz.utc).localize(time).astimezone(timezone).replace(tzinfo=None))
+    def datetime_to_local_string(self, dtime: datetime.datetime, timezone = 'US/Central') -> str:
+        return self.datetime_to_string(pytz.timezone('UTC').localize(dtime).astimezone(pytz.timezone(timezone)).replace(tzinfo=None))
 
 class CameronCountyData:
 
@@ -93,7 +93,7 @@ class CameronCountyData:
         return {'begin':Database().sql_to_datetime(entry[0]),'end':Database().sql_to_datetime(entry[1]),'valid':entry[2],'announced':entry[3]}
 
     def __to_utc_time(self, time: datetime.datetime, timezone = 'US/Central') -> datetime.datetime:
-        return pytz.timezone(timezone).localize(time).astimezone(pytz.utc).replace(tzinfo=None)
+        return pytz.timezone(timezone).localize(time).astimezone(pytz.timezone('UTC')).replace(tzinfo=None)
 
     def append_cameroncounty(self, data: list, sendmessage:bool = True):   #daily = daily update sendmessage -> does not want any changes as extra message
         conn = sqlite3.connect(db, timeout=20)

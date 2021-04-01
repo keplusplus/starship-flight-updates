@@ -24,7 +24,7 @@ def handle_link(text:str , disable_link_preview:bool):  #rekursive
         link = '<'+link+'>'
     return handle_link(beforelink+'['+linktext+']('+link+')'+afterlink+preview,disable_link_preview)
 
-def send_discord_message(text:str, webhook = webhook_url,disable_link_preview = False, color = 7707321):
+def send_discord_message(text:str, disable_link_preview = False, color = 7707321, webhook = webhook_url):
     text = text.replace('<b>','**').replace('</b>','**')    #bold
     text = text.replace('<u>','__').replace('</u>','__')    #underline
     text = text.replace('<i>','_').replace('</i>','_')      #italic
@@ -36,4 +36,4 @@ def send_discord_message(text:str, webhook = webhook_url,disable_link_preview = 
         requests.post(webhook, json = {'content':text})
 
 def send_discord_error_message(text:str, disable_link_preview = True, color = 13632027):
-    send_discord_message(text,webhook = error_webhook_url, disable_link_preview = disable_link_preview, color = color)
+    send_discord_message(text, disable_link_preview = disable_link_preview, color = color, webhook = error_webhook_url)

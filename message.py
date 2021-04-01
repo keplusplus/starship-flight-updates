@@ -15,8 +15,12 @@ class ErrMessage:
     def sendErrMessage(self, message, mustPassedHours = 2):
         message += self.errorInfo()
         if ErrMessage.errMessages.get(message, datetime.datetime.min) < datetime.datetime.now() - datetime.timedelta(hours=mustPassedHours):  #if err not in last 2 hours
-            telebot.send_err_message(message)
-            discord.send_discord_error_message(message)
+            try:
+                telebot.send_err_message(message)
+            except: pass
+            try:
+                discord.send_discord_error_message(message)
+            except: pass
         ErrMessage.errMessages[message] = datetime.datetime.now()
 
 def send_message(message, disable_link_preview = True, color = 7707321):
