@@ -10,33 +10,33 @@ from data_sources import twitter
 
 def daily_update():
     print('>daily')
-    #try:
-    ccp = CameronCountyParser()
-    ccp.parse()
-    CameronCountyData().append_cameroncounty(ccp.closures,False)
-    faa = FAAParser()
-    faa.parse()
-    FAAData().append_faa(faa.tfrs,False)
-    print('>collected & waiting')
-    #make sure the message is sent exactly at 13:00
-    wait = (datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds()
-    if wait > 0:
-        time.sleep(wait)
-    message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().today_forecast()),color=16767232)
-    #except Exception as e:
-    #    message.ErrMessage().sendErrMessage('Error daily-message!\n\nException:\n' + str(e))
+    try:
+        ccp = CameronCountyParser()
+        ccp.parse()
+        CameronCountyData().append_cameroncounty(ccp.closures,False)
+        faa = FAAParser()
+        faa.parse()
+        FAAData().append_faa(faa.tfrs,False)
+        print('>collected & waiting')
+        #make sure the message is sent exactly at 13:00
+        wait = (datetime.datetime.now().replace(hour=13,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds()
+        if wait > 0:
+            time.sleep(wait)
+        message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().today_forecast()),color=16767232)
+    except Exception as e:
+        message.ErrMessage().sendErrMessage('Error daily-message!\n\nException:\n' + str(e))
 
 def regular_update(twit:twitter.Twitter):
     print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
     try:
         ccp = CameronCountyParser()
         ccp.parse()
-        #ccp.closures.append({'begin': datetime.datetime(2021,2,24,15,00),'end': datetime.datetime(2021,2,26,16,00),'valid': True})
+        #ccp.closures.append({'begin': datetime.datetime(2021,4,2,9,53),'end': datetime.datetime(2021,4,2,9,54),'valid': True})
         CameronCountyData().append_cameroncounty(ccp.closures)
 
         faa = FAAParser()
         faa.parse()
-        #faa.tfrs.append({'begin':datetime.datetime(2021,2,25,17,00),'end':datetime.datetime(2021,2,25,20,00),'fromSurface':True,'toAltitude':100})
+        #faa.tfrs.append({'begin':datetime.datetime(2021,4,2,14,49),'end':datetime.datetime(2021,4,2,14,50),'fromSurface':True,'toAltitude':-1})
         FAAData().append_faa(faa.tfrs)
 
         wiki = WikipediaParser()
