@@ -37,6 +37,6 @@ jobs:
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/data_sources/*.py starship@10.2.10.1:~/test/data_sources/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/.env.default starship@10.2.10.1:~/test/
     - name: Restart the service
-      run: ssh -o StrictHostKeyChecking=no starship@10.2.10.1 systemctl --user restart starship-flight-updates
+      run: ssh -o StrictHostKeyChecking=no starship@10.2.10.1 systemctl --user restart starship-flight-updates-testing
     - name: Close tunnel
       run: wg-quick down tunnel
