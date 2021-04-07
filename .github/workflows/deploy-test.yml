@@ -31,7 +31,7 @@ jobs:
     - name: Deploy to test
       run: |
         wg-quick up tunnel
-        ssh -o StrictHostKeyChecking=no starship@10.2.10.1 mkdir -p ~/test/data_sources
+        ssh -o StrictHostKeyChecking=no starship@10.2.10.1 mkdir -p /opt/starship-flight-updates/test/data_sources
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/*.py starship@10.2.10.1:~/test/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/data_sources/*.py starship@10.2.10.1:~/test/data_sources/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/.env.default starship@10.2.10.1:~/test/
