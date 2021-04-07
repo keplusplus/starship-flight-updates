@@ -1,0 +1,38 @@
+name: Wireguard SSH deploy (testing)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install wireguard
+      run: sudo apt-get install wireguard
+
+    - name: Create wireguard tunnel configuration
+      run: |
+        sed -i -e "s@{{PLACEHOLDER_WIREGUARD_PRIVATE_KEY}}@${{ secrets.WIREGUARD_PRIVATE_KEY }}@" $GITHUB_WORKSPACE/.github/workflows/deploy-tunnel.conf
+        sed -i -e "s@{{PLACEHOLDER_WIREGUARD_SERVER_PUBLIC_KEY}}@${{ secrets.WIREGUARD_SERVER_PUBLIC_KEY }}@" $GITHUB_WORKSPACE/.github/workflows/deploy-tunnel.conf
+        sed -i -e "s@{{PLACEHOLDER_WIREGUARD_SERVER_ENDPOINT}}@${{ secrets.WIREGUARD_SERVER_ENDPOINT }}@" $GITHUB_WORKSPACE/.github/workflows/deploy-tunnel.conf
+        sudo cp $GITHUB_WORKSPACE/.github/workflows/deploy-tunnel.conf /etc/wireguard/tunnel.conf
+    - name: Prepare ssh key for remote login
+      run: |
+        mkdir ~/.ssh/
+        echo "${{ secrets.SSH_SERVER_DEPLOY_SECRET }}" | base64 -d > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+    - name: Deploy to test
+      run: |
+        wg-quick up tunnel
+        ssh -o StrictHostKeyChecking=no starship@10.2.10.1 mkdir -p ~/test/data_sources
+        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/*.py starship@10.2.10.1:~/test/
+        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/data_sources/*.py starship@10.2.10.1:~/test/data_sources/
+        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/.env.default starship@10.2.10.1:~/test/
+        wg-quick down tunnel
