@@ -44,7 +44,7 @@ To get this script working you need a recent version of Python 3. We have tested
 Just clone the repository and make your own `.env` file by copying the template `.env.default` and fill it with your own secrets. Then you need to install a few dependencies. With pip just do:
 
 ```
-$ pip install beautifulsoup4 requests xmltodict schedule
+$ pip install beautifulsoup4 requests xmltodict schedule pytz
 ```
 
 Make sure your pip command is using Python 3. Check with `pip -V` if you are not sure.

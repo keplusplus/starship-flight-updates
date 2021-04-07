@@ -1,4 +1,7 @@
-import sqlite3, telebot, datetime, message, time, pytz
+import sqlite3, datetime, message, time
+from data_sources import library_helper
+library_helper.assure_ext_library('pytz')
+import pytz
 
 db = r'starship.db'
 
