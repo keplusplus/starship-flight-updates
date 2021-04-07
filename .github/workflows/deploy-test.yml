@@ -28,13 +28,15 @@ jobs:
         mkdir ~/.ssh/
         echo "${{ secrets.SSH_SERVER_DEPLOY_SECRET }}" | base64 -d > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+    - name: Establish tunnel
+      run: wg-quick up tunnel
     - name: Deploy to test
       run: |
-        wg-quick up tunnel
         ssh -o StrictHostKeyChecking=no starship@10.2.10.1 mkdir -p /opt/starship-flight-updates/test/data_sources
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/*.py starship@10.2.10.1:~/test/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/data_sources/*.py starship@10.2.10.1:~/test/data_sources/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/.env.default starship@10.2.10.1:~/test/
-        wg-quick down tunnel
     - name: Restart the service
       run: ssh -o StrictHostKeyChecking=no starship@10.2.10.1 systemctl --user restart starship-flight-updates
+    - name: Close tunnel
+      run: wg-quick down tunnel
