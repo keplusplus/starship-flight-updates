@@ -72,7 +72,7 @@ def daily_update_message(closures, tfrs, weather) -> str:
     flightStr = 'yes' if flight else 'no'
     staticStr = 'yes' if staticfire else 'no'
     #Header & Roadclosure
-    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+db.datetime_to_string(datetime.datetime.utcnow())+' local: '+db.datetime_to_local_string(datetime.datetime.utcnow())+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
+    out = '<b>𝗗𝗮𝗶𝗹𝘆 𝗙𝗹𝗶𝗴𝗵𝘁 𝗦𝘁𝗮𝘁𝘂𝘀+</b> <i>[flight: '+flightStr+'| static: '+staticStr+']</i>\nCurrent Time UTC: '+db.datetime_to_string(datetime.datetime.utcnow())+' local: '+db.datetime_to_local_string(datetime.datetime.utcnow())+'\n<a href="https://www.cameroncounty.us/spacex/"><b>Road Closure:</b></a>'
     if closures[0]:
         out+= '✅\n'
         for x in closures[1:]:
