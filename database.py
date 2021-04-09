@@ -304,7 +304,7 @@ class WikiData:
         for in_temp in c.execute('SELECT * FROM temphistory WHERE time < ?',(datetime.datetime.utcnow()-passedtime,)).fetchall():
             temp = {'name':in_temp[1],'firstSpotted':in_temp[2],'rolledOut':in_temp[3],'firstStaticFire':in_temp[4],'maidenFlight':in_temp[5],'decomissioned':in_temp[6],'constructionSite':in_temp[7],'status':in_temp[8],'flights':in_temp[9]}
             if c.execute('SELECT * FROM history WHERE name = ?',(temp['name'],)).fetchone():   #in db -> look for changes
-                in_db = c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone()
+                in_db = c.execute('SELECT * FROM history WHERE name = ?',(temp['name'],)).fetchone()
                 c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(temp['firstSpotted'],temp['rolledOut'],temp['firstStaticFire'],temp['maidenFlight'],temp['decomissioned'],temp['constructionSite'],temp['status'],temp['flights'],temp['name']))
                 old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
                 if old['status'] not in ['Retired','Destroyed','Scrapped','Suspended'] or (old['status'] != temp['status'] and temp['status'] not in ['Retired','Destroyed','Scrapped','Suspended']): #-> no message for retired/destroyed/scrapped starships
