@@ -41,7 +41,7 @@ def regular_update(twit:twitter.Twitter):
 
         wiki = WikipediaParser()
         wiki.parse()
-        #test = {'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1}
+        #wiki.starships.append({'name':'Test','firstSpotted':'test','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1})
         WikiData().append_history(wiki.starships)
 
         active.manage_twitter(twit)

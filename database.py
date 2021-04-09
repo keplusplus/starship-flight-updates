@@ -20,6 +20,8 @@ class Database:
         c.execute("CREATE TABLE 'faa' ('id' INTEGER PRIMARY KEY AUTOINCREMENT,'begin' TIMESTAMP NOT NULL,'end' TIMESTAMP NOT NULL,'fromSurface' BOOL, toAltitude INTEGER, 'announced' BOOL DEFAULT FALSE);")
         c.execute('DROP TABLE history')
         c.execute("CREATE TABLE 'history' ('name' VARCHAR(250) PRIMARY KEY,'firstSpotted' VARCHAR(250) NOT NULL,'rolledOut' VARCHAR(250) NOT NULL,'firstStaticFire' VARCHAR(250) NOT NULL,'maidenFlight' VARCHAR(250) NOT NULL,'decomissioned' VARCHAR(250) NOT NULL,'constructionSite' VARCHAR(250) NOT NULL,'status' VARCHAR(250) NOT NULL,'flights' INTEGER NOT NULL);")
+        c.execute('DROP TABLE temphistory')
+        c.execute("CREATE TABLE 'temphistory' ('time' TIMESTAMP NOT NULL,'name' VARCHAR(250),'firstSpotted' VARCHAR(250) NOT NULL,'rolledOut' VARCHAR(250) NOT NULL,'firstStaticFire' VARCHAR(250) NOT NULL,'maidenFlight' VARCHAR(250) NOT NULL,'decomissioned' VARCHAR(250) NOT NULL,'constructionSite' VARCHAR(250) NOT NULL,'status' VARCHAR(250) NOT NULL,'flights' INTEGER NOT NULL);")
         conn.commit()
 
     def setup_database(self):
@@ -34,6 +36,9 @@ class Database:
         except:pass
         try:
             c.execute("CREATE TABLE 'history' ('name' VARCHAR(250) PRIMARY KEY,'firstSpotted' VARCHAR(250) NOT NULL,'rolledOut' VARCHAR(250) NOT NULL,'firstStaticFire' VARCHAR(250) NOT NULL,'maidenFlight' VARCHAR(250) NOT NULL,'decomissioned' VARCHAR(250) NOT NULL,'constructionSite' VARCHAR(250) NOT NULL,'status' VARCHAR(250) NOT NULL,'flights' INTEGER NOT NULL);")
+        except:pass
+        try:
+            c.execute("CREATE TABLE 'temphistory' ('time' TIMESTAMP NOT NULL,'name' VARCHAR(250),'firstSpotted' VARCHAR(250) NOT NULL,'rolledOut' VARCHAR(250) NOT NULL,'firstStaticFire' VARCHAR(250) NOT NULL,'maidenFlight' VARCHAR(250) NOT NULL,'decomissioned' VARCHAR(250) NOT NULL,'constructionSite' VARCHAR(250) NOT NULL,'status' VARCHAR(250) NOT NULL,'flights' INTEGER NOT NULL);")
         except:pass
         conn.commit()
 
@@ -268,24 +273,45 @@ class WikiData:
                     out[x] = [new[x],old[x]]
         return out
 
-    def append_history(self, data:list):
+    def append_history(self, data:list, passedtime = datetime.timedelta(hours=2)):
         conn = sqlite3.connect(db, timeout=20)
         c = conn.cursor()
         for d in data:
             if c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone():   #in db -> look for changes
                 in_db = c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone()
-                if list(set(list(d.values()))-set(in_db)) != []:
-                    #something changed
-                    old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
-                    c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights'],d['name']))
-                    if old['status'] not in ['Retired','Destroyed','Scrapped','Suspended']: #-> no message for retired/destroyed/scrapped starships
-                        message.send_test_message(message.history_message(d, self.compareDicts(d,old)))
-                        time.sleep(3)
-                    elif old['status'] != d['status'] and d['status'] not in ['Retired','Destroyed','Scrapped','Suspended']:    #-> message if status changed from retired/destroyed/scrapped to something else than retired/destroyed/scrapped
-                        message.send_test_message(message.history_message(d, self.compareDicts(d,old)))
-                        time.sleep(3)
+                if list(d.values()) != list(in_db):    #something changed
+                    if c.execute('SELECT * FROM temphistory WHERE name = ?',(d['name'],)).fetchone():  #change in temp?
+                        in_temp = c.execute('SELECT * FROM temphistory WHERE name = ?',(d['name'],)).fetchone()
+                        if list(d.values()) != list(in_temp[1:]):    #something changed
+                            c.execute("DELETE FROM temphistory WHERE name = ?", (d['name'],))
+                            c.execute('INSERT INTO temphistory(time,name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?,?)',(datetime.datetime.utcnow(),d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
+                    else:
+                        c.execute('INSERT INTO temphistory(time,name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?,?)',(datetime.datetime.utcnow(),d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
             else:   #not in db
-                message.send_test_message(message.history_message(d))
-                c.execute('INSERT INTO history(name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?)',(d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
-                time.sleep(5)
+                if c.execute('SELECT * FROM temphistory WHERE name = ?',(d['name'],)).fetchone():  #change in temp?
+                    in_temp = c.execute('SELECT * FROM temphistory WHERE name = ?',(d['name'],)).fetchone()
+                    if list(d.values()) != list(in_temp[1:]):    #something changed
+                        c.execute("DELETE FROM temphistory WHERE name = ?", (d['name'],))
+                        c.execute('INSERT INTO temphistory(time,name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?,?)',(datetime.datetime.utcnow(),d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
+                else:
+                    c.execute('INSERT INTO temphistory(time,name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?,?)',(datetime.datetime.utcnow(),d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
             conn.commit()
+        for in_temp in c.execute('SELECT * FROM temphistory '): #test if change in temp has been removed
+            temp = {'name':in_temp[1],'firstSpotted':in_temp[2],'rolledOut':in_temp[3],'firstStaticFire':in_temp[4],'maidenFlight':in_temp[5],'decomissioned':in_temp[6],'constructionSite':in_temp[7],'status':in_temp[8],'flights':in_temp[9]}
+            if temp not in data:
+                c.execute("DELETE FROM temphistory WHERE name = ?", (temp['name'],))
+            conn.commit()
+        for in_temp in c.execute('SELECT * FROM temphistory WHERE time < ?',(datetime.datetime.utcnow()-passedtime,)).fetchall():
+            temp = {'name':in_temp[1],'firstSpotted':in_temp[2],'rolledOut':in_temp[3],'firstStaticFire':in_temp[4],'maidenFlight':in_temp[5],'decomissioned':in_temp[6],'constructionSite':in_temp[7],'status':in_temp[8],'flights':in_temp[9]}
+            if c.execute('SELECT * FROM history WHERE name = ?',(temp['name'],)).fetchone():   #in db -> look for changes
+                in_db = c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone()
+                c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(temp['firstSpotted'],temp['rolledOut'],temp['firstStaticFire'],temp['maidenFlight'],temp['decomissioned'],temp['constructionSite'],temp['status'],temp['flights'],temp['name']))
+                old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
+                if old['status'] not in ['Retired','Destroyed','Scrapped','Suspended'] or (old['status'] != temp['status'] and temp['status'] not in ['Retired','Destroyed','Scrapped','Suspended']): #-> no message for retired/destroyed/scrapped starships
+                    message.send_test_message(message.history_message(temp, self.compareDicts(temp,old)))
+            else:   #not in db
+                message.send_test_message(message.history_message(temp))
+                c.execute('INSERT INTO history(name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?)',(temp['name'],temp['firstSpotted'],temp['rolledOut'],temp['firstStaticFire'],temp['maidenFlight'],temp['decomissioned'],temp['constructionSite'],temp['status'],temp['flights']))
+            c.execute("DELETE FROM temphistory WHERE name = ?", (temp['name'],))
+            conn.commit()
+            time.sleep(2)
