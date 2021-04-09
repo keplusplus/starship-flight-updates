@@ -45,10 +45,10 @@ class CameronCountyParser:
                 else:    
                     end = datetime.strptime(time_text[time_text.find(' to ') + 4:], '%b %d – %I:%M %p').replace(year=date.year)
                 
-                if 'Canceled' in status_text:
-                    valid = False
-                else:
+                if 'Scheduled' in status_text:
                     valid = True
+                else:
+                    valid = False
 
                 self.closures.append({
                     'begin': begin,
