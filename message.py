@@ -35,6 +35,7 @@ def send_test_message(message, disable_link_preview = True):
     telebot.send_message(telebot.err_channel_id,message,disable_link_preview)
 
 def send_raw(text:str):
+    #print(text)
     pass
 
 def history_message(data:dict, changes:dict = {}) -> str:

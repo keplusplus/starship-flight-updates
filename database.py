@@ -190,14 +190,14 @@ class FAAData:
                 message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR max altitude has changed!</b></a>\nMax alt. is now '+(str(d['toAltitude'])+' ft (was '+str(in_db['toAltitude'])+' ft)').replace('-1 ft','unlimited')+'\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
 
     def __faa_new(self, sendmessage, d):
-        message.send_raw('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+(str(d['toAltitude'])+' ft,').replace('-1 ft','unlimited')+' flight is '+('not' if d['toAltitude'] != -1 else '')+' possible!\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
+        message.send_raw('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+(str(d['toAltitude'])+' ft,').replace('-1 ft','unlimited')+' flight is '+('not ' if d['toAltitude'] != -1 else '')+'possible!\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
         if sendmessage and self.__announce() and self.__utctoday_or_between_not_past(d['begin'],d['end']):
-            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+(str(d['toAltitude'])+' ft,').replace('-1 ft','unlimited')+' flight is '+('not' if d['toAltitude'] != -1 else '')+' possible!\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
+            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+(str(d['toAltitude'])+' ft,').replace('-1 ft','unlimited')+' flight is '+('not ' if d['toAltitude'] != -1 else '')+'possible!\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
 
     def __faa_delete(self, sendmessage, in_db):
-        message.send_raw('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>This TFR has been removed:</b></a>\n(<i><s>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</s> UTC</i>)')
+        message.send_raw('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>This TFR has been removed: </b></a>'+('(Altitude: '+str(in_db['toAltitude'])+' ft)').replace('-1 ft','unlimited')+'\n(<i><s>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</s> UTC</i>)')
         if sendmessage and in_db['announced'] and self.__utctoday_or_between_not_past(in_db['begin'],in_db['end']):
-            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>This TFR has been removed:</b></a>\n(<i><s>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</s> UTC</i>)')
+            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>This TFR has been removed: </b></a>'+('(Altitude: '+str(in_db['toAltitude'])+' ft)').replace('-1 ft','unlimited')+'\n(<i><s>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</s> UTC</i>)')
 
     def __faa_in_db_prepare(self, entry:list):
         return {'begin':Database().sql_to_datetime(entry[0]),'end':Database().sql_to_datetime(entry[1]),'toAltitude':entry[2],'announced':entry[3]}
@@ -293,9 +293,10 @@ class WikiData:
                     if list(d.values()) != list(in_temp[1:]):    #something changed
                         c.execute("DELETE FROM temphistory WHERE name = ?", (d['name'],))
                         c.execute('INSERT INTO temphistory(time,name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?,?)',(datetime.datetime.utcnow(),d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
+                        message.send_raw(message.history_message(d))
                 else:
                     c.execute('INSERT INTO temphistory(time,name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?,?)',(datetime.datetime.utcnow(),d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
-                message.send_raw(message.history_message(d))
+                    message.send_raw(message.history_message(d))
             conn.commit()
         for in_temp in c.execute('SELECT * FROM temphistory '): #test if change in temp has been removed
             temp = {'name':in_temp[1],'firstSpotted':in_temp[2],'rolledOut':in_temp[3],'firstStaticFire':in_temp[4],'maidenFlight':in_temp[5],'decomissioned':in_temp[6],'constructionSite':in_temp[7],'status':in_temp[8],'flights':in_temp[9]}

@@ -31,7 +31,7 @@ def regular_update(twit:twitter.Twitter):
     try:
         ccp = CameronCountyParser()
         ccp.parse()
-        #ccp.closures.append({'begin': datetime.datetime(2021,4,2,9,53),'end': datetime.datetime(2021,4,2,9,54),'valid': True})
+        #ccp.closures.append({'begin': datetime.datetime(2021,4,2,9,53),'end': datetime.datetime(2021,4,2,9,56),'valid': False})
         CameronCountyData().append_cameroncounty(ccp.closures)
 
         faa = FAAParser()
