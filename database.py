@@ -45,7 +45,7 @@ class Database:
     def datetime_to_string(self, dtime: datetime) -> str:
         if isinstance(dtime, datetime.time):
             return dtime.strftime('%H:%M')
-        if dtime.date() == datetime.date.today():
+        if dtime.date() == datetime.datetime.utcnow().date() :
             return dtime.strftime('%H:%M')
         return dtime.strftime('%b %d %H:%M')
     
@@ -77,23 +77,24 @@ class CameronCountyData:
 
     def __cameroncounty_valid_changes(self, sendmessage, d, in_db):   #test iv valid state changes
         if in_db['valid'] != d['valid']:    #valid has changed
+            message.send_raw("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has been "+("rescheduled" if d['valid'] else "canceled")+"!</b></a>\n(<i>From "+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
             if sendmessage and self.__utctoday_or_between_not_past(d['begin'],d['end']) and (self.__announce() or in_db['announced']):
-                if d['valid']:  #now valid
-                    message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has been rescheduled!</b></a>\n(<i>From "+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
-                else:           #no longer valid
-                    message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has been canceled!</b></a>\n(<i><s>From "+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+'</s> UTC</i>)')
+                message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has been "+("rescheduled" if d['valid'] else "canceled")+"!</b></a>\n(<i>From "+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
 
     def __cameroncounty_time_changes(self, sendmessage, d, in_db):    #test if time changes
         if d['begin'] != in_db['begin'] or d['end'] != in_db['end']:    #times have changed
+            message.send_raw("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has changed!</b></a>\n<u>From "+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+'</u> (UTC)\n⬆️\n<i>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</i> (UTC)')
             if sendmessage and (self.__utctoday_or_between_not_past(d['begin'],d['end']) or self.__utctoday_or_between_not_past(in_db['begin'],in_db['end'])) and (self.__announce() or in_db['announced']):
                 d['announced'] = True
                 message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has changed!</b></a>\n<u>From "+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+'</u> (UTC)\n⬆️\n<i>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</i> (UTC)')
 
     def __cameroncounty_new(self, sendmessage, d):
+        message.send_raw('<a href="https://www.cameroncounty.us/spacex/"><b>A new road closure has been scheduled!</b></a>\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+'</i> UTC)')
         if sendmessage and self.__announce() and self.__utctoday_or_between_not_past(d['begin'],d['end']):
             message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>A new road closure has been scheduled!</b></a>\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+'</i> UTC)')
 
     def __cameroncounty_delete(self, sendmessage, in_db):
+        message.send_raw('<a href="https://www.cameroncounty.us/spacex/"><b>This road closure has been removed:</b></a>\n(<i><s>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</s> UTC</i>)')
         if sendmessage and in_db['announced'] and self.__utctoday_or_between_not_past(in_db['begin'],in_db['end']):
             message.send_message('<a href="https://www.cameroncounty.us/spacex/"><b>This road closure has been removed:</b></a>\n(<i><s>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</s> UTC</i>)')
 
@@ -183,21 +184,18 @@ class FAAData:
         return datetime.datetime.now().time() > daily_time or datetime.datetime.now().time() <  (datetime.datetime.combine(datetime.date.today(), daily_time) - pause).time()
 
     def __faa_altitude_changes(self, sendmessage, d, in_db):
-        if sendmessage and self.__utctoday_or_between_not_past(d['begin'],d['end']) and (self.__announce() or in_db['announced']):
-            if d['toAltitude'] != in_db['toAltitude']:  #test if change
-                if d['toAltitude'] == -1:   #now unlimited
-                    message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR max altitude has changed!</b></a>\nMax alt. is now unlimited (was '+str(in_db['toAltitude'])+'ft)\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
-                else:   #now limited
-                    message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR max altitude has changed!</b></a>\nMax alt. is now '+str(d['toAltitude'])+'ft (was '+(str(in_db['toAltitude'])+' ft)').replace('-1 ft','unlimited')+'\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
+        if d['toAltitude'] != in_db['toAltitude']:  #test if change
+            message.send_raw('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR max altitude has changed!</b></a>\nMax alt. is now '+(str(d['toAltitude'])+' ft (was '+str(in_db['toAltitude'])+' ft)').replace('-1 ft','unlimited')+'\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
+            if sendmessage and self.__utctoday_or_between_not_past(d['begin'],d['end']) and (self.__announce() or in_db['announced']):
+                message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>TFR max altitude has changed!</b></a>\nMax alt. is now '+(str(d['toAltitude'])+' ft (was '+str(in_db['toAltitude'])+' ft)').replace('-1 ft','unlimited')+'\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
 
     def __faa_new(self, sendmessage, d):
+        message.send_raw('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+(str(d['toAltitude'])+' ft,').replace('-1 ft','unlimited')+' flight is '+('not' if d['toAltitude'] != -1 else '')+' possible!\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
         if sendmessage and self.__announce() and self.__utctoday_or_between_not_past(d['begin'],d['end']):
-            if d['toAltitude'] == -1:
-                message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: unlimited, flight is possible!\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
-            else:
-                message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+str(d['toAltitude'])+' ft, flight is not possible!\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
+            message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>New TFR has been issued!</b></a>\nMax alt.: '+(str(d['toAltitude'])+' ft,').replace('-1 ft','unlimited')+' flight is '+('not' if d['toAltitude'] != -1 else '')+' possible!\n(<i>From '+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+' UTC</i>)')
 
     def __faa_delete(self, sendmessage, in_db):
+        message.send_raw('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>This TFR has been removed:</b></a>\n(<i><s>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</s> UTC</i>)')
         if sendmessage and in_db['announced'] and self.__utctoday_or_between_not_past(in_db['begin'],in_db['end']):
             message.send_message('<a href="https://tfr.faa.gov/tfr_map_ims/html/cc/scale7/tile_33_61.html"><b>This TFR has been removed:</b></a>\n(<i><s>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</s> UTC</i>)')
 
@@ -280,6 +278,8 @@ class WikiData:
             if c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone():   #in db -> look for changes
                 in_db = c.execute('SELECT * FROM history WHERE name = ?',(d['name'],)).fetchone()
                 if list(d.values()) != list(in_db):    #something changed
+                    in_db = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
+                    message.send_raw(message.history_message(d, self.compareDicts(d, in_db)))
                     if c.execute('SELECT * FROM temphistory WHERE name = ?',(d['name'],)).fetchone():  #change in temp?
                         in_temp = c.execute('SELECT * FROM temphistory WHERE name = ?',(d['name'],)).fetchone()
                         if list(d.values()) != list(in_temp[1:]):    #something changed
@@ -295,6 +295,7 @@ class WikiData:
                         c.execute('INSERT INTO temphistory(time,name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?,?)',(datetime.datetime.utcnow(),d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
                 else:
                     c.execute('INSERT INTO temphistory(time,name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?,?)',(datetime.datetime.utcnow(),d['name'],d['firstSpotted'],d['rolledOut'],d['firstStaticFire'],d['maidenFlight'],d['decomissioned'],d['constructionSite'],d['status'],d['flights']))
+                message.send_raw(message.history_message(d))
             conn.commit()
         for in_temp in c.execute('SELECT * FROM temphistory '): #test if change in temp has been removed
             temp = {'name':in_temp[1],'firstSpotted':in_temp[2],'rolledOut':in_temp[3],'firstStaticFire':in_temp[4],'maidenFlight':in_temp[5],'decomissioned':in_temp[6],'constructionSite':in_temp[7],'status':in_temp[8],'flights':in_temp[9]}
