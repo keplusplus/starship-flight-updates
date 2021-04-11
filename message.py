@@ -34,6 +34,9 @@ def send_test_message(message, disable_link_preview = True):
         return
     telebot.send_message(telebot.err_channel_id,message,disable_link_preview)
 
+def send_raw(text:str):
+    pass
+
 def history_message(data:dict, changes:dict = {}) -> str:
     for d in data:  #underline changes
         if d in changes:
