@@ -42,22 +42,26 @@ class WikipediaParser:
             return None
     
     def __fix_string(self, string):
-        if type(string) == str:
+        if type(string) == str and string.strip() != '':
             string = string.strip()
 
             if string[-1] == ']':
                 string = string[:string.rfind('[')]
 
-        return string
+        return string.strip()
 
     def parse(self):
         try:
             self.starships = []
             req = requests.get(WikipediaParser.url, WikipediaParser.headers)
             soup = BeautifulSoup(req.content, 'html.parser')
-            table = soup.find_all('table')[4].find('tbody')
-            rows = table.find_all('tr')
-            del rows[0]
+            combinedrows = None
+            for table in soup.find_all('table'):
+                if 'maiden flight' in table.get_text().lower():
+                    table = table.find('tbody')
+                    rows = table.find_all('tr')
+                    del rows[0]
+                    combinedrows = rows if combinedrows is None else combinedrows + rows
             for row in rows:
                 starship = {}
                 data = row.find_all('td')
@@ -79,13 +83,13 @@ class WikipediaParser:
                 starship['decomissioned'] = data[5].get_text()
                 starship['constructionSite'] = data[6].get_text()
                 starship['status'] = data[7].get_text()
-                starship['flights'] = int(data[8].get_text())
+                starship['flights'] = data[8].get_text()
                 
                 for key in starship:
                     starship[key] = self.__fix_string(starship[key])
 
                 self.starships.append(starship)
-            
+
             return self.starships
         except Exception as e:
             ErrMessage().sendErrMessage('Error parsing Starship development history (Wikipedia)!\n\nException:\n' + str(e))
