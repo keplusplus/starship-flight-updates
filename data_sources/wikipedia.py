@@ -78,5 +78,5 @@ class WikipediaParser:
             
             return self.starships
         except Exception as e:
-            ErrMessage.sendErrMessage('Error parsing Starship development history (Wikipedia)!\n\nException:\n' + str(e))
+            ErrMessage().sendErrMessage('Error parsing Starship development history (Wikipedia)!\n\nException:\n' + str(e))
             return []

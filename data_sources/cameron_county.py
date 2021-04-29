@@ -2,6 +2,8 @@ from message import ErrMessage
 from data_sources import library_helper
 library_helper.assure_ext_library('BeautifulSoup4')
 from bs4 import BeautifulSoup
+library_helper.assure_ext_library('python-dateutil')
+import dateutil.parser as dparser
 import requests
 import locale
 import telebot
@@ -36,16 +38,15 @@ class CameronCountyParser:
                 time_text = td[2].get_text()
                 status_text = td[3].get_text()
 
-                time_text = time_text.replace(".m.", "m")
-                date = datetime.strptime(date_text[date_text.find(', ') + 2:], '%B %d, %Y')
-                begin = datetime.combine(date, datetime.strptime(time_text[:time_text.find(' to ')], '%I:%M %p').time())
-
-                if time_text[time_text.find(' to ') + 4].isdigit():
-                    end = datetime.combine(date, datetime.strptime(time_text[time_text.find(' to ') + 4:], '%I:%M %p').time())
-                else:    
-                    end = datetime.strptime(time_text[time_text.find(' to ') + 4:], '%b %d – %I:%M %p').replace(year=date.year)
+                begin = dparser.parse(date_text.lower().split('to')[0],fuzzy=True).date()
+                end = begin
+                if 'to' in date_text.lower():
+                    end = dparser.parse(date_text.lower().split('to')[1],fuzzy=True).date()
                 
-                if 'Scheduled' in status_text:
+                begin = datetime.combine(begin, dparser.parse(time_text.lower().split('to')[0],fuzzy=True).time())
+                end = datetime.combine(begin, dparser.parse(time_text.lower().split('to')[1],fuzzy=True).time())
+                
+                if 'scheduled' in status_text.lower():
                     valid = True
                 else:
                     valid = False
