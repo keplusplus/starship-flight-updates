@@ -309,9 +309,10 @@ class WikiData:
                 old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
                 if old['status'] not in ['Retired','Destroyed','Scrapped','Suspended'] or (old['status'] != temp['status'] and temp['status'] not in ['Retired','Destroyed','Scrapped','Suspended']): #-> no message for retired/destroyed/scrapped starships
                     message.send_test_message(message.history_message(temp, self.compareDicts(temp,old)))
+                    time.sleep(2)
             else:   #not in db
                 message.send_test_message(message.history_message(temp))
                 c.execute('INSERT INTO history(name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?)',(temp['name'],temp['firstSpotted'],temp['rolledOut'],temp['firstStaticFire'],temp['maidenFlight'],temp['decomissioned'],temp['constructionSite'],temp['status'],temp['flights']))
+                time.sleep(2)
             c.execute("DELETE FROM temphistory WHERE name = ?", (temp['name'],))
             conn.commit()
-            time.sleep(2)
