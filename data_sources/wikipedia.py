@@ -44,7 +44,7 @@ class WikipediaParser:
     def __fix_string(self, string):
         if type(string) == str and string.strip() != '':
             string = re.sub('(?<=\[).*?(?=\])','', string.strip()).replace('[]','')
-        return string.strip()
+        return string
 
     def parse(self):
         try:
@@ -77,7 +77,7 @@ class WikipediaParser:
                         starship['decomissioned'] = data[5].get_text()
                         starship['constructionSite'] = data[6].get_text()
                         starship['status'] = data[7].get_text()
-                        starship['flights'] = data[8].get_text()
+                        starship['flights'] = int(data[8].get_text())
                         
                         for key in starship:
                             starship[key] = self.__fix_string(starship[key])
