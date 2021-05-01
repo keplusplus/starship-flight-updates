@@ -66,9 +66,9 @@ def daily_update_message(closures, tfrs, weather) -> str:
     
     flight = (Weather().weather_text(weather)[1] and Weather().wind_text(weather)[1] and closures[0] and tfrs[0])
     staticfire = closures[0]
-    #if datetime.date.today().weekday() > 4 and not flight:
-    #    print('weekend and nothing possible')
-    #    return ''
+    if datetime.date.today().weekday() > 4 and not flight:
+        print('weekend and nothing possible')
+        return ''
     flightStr = 'yes' if flight else 'no'
     staticStr = 'yes' if staticfire else 'no'
     #Header & Roadclosure
