@@ -1,7 +1,7 @@
 name: Wireguard SSH deploy (testing)
 
 on:
-  pull_request:
+  push:
     branches: [ main ]
   workflow_dispatch:
 
@@ -30,11 +30,11 @@ jobs:
       run: wg-quick up tunnel
     - name: Deploy to test
       run: |
-        ssh -o StrictHostKeyChecking=no starship@10.2.10.1 mkdir -p /opt/starship-flight-updates/test/data_sources
-        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/*.py starship@10.2.10.1:~/test/
-        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/data_sources/*.py starship@10.2.10.1:~/test/data_sources/
-        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/.env.default starship@10.2.10.1:~/test/
+        ssh -o StrictHostKeyChecking=no starship@10.2.10.1 mkdir -p /opt/starship-flight-updates/stable/data_sources
+        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/*.py starship@10.2.10.1:~/stable/
+        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/data_sources/*.py starship@10.2.10.1:~/stable/data_sources/
+        scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/.env.default starship@10.2.10.1:~/stable/
     - name: Restart the service
-      run: ssh -o StrictHostKeyChecking=no starship@10.2.10.1 systemctl --user restart starship-flight-updates-testing
+      run: ssh -o StrictHostKeyChecking=no starship@10.2.10.1 systemctl --user restart starship-flight-updates-stable
     - name: Close tunnel
       run: wg-quick down tunnel
