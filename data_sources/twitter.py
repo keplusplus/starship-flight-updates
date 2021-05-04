@@ -26,9 +26,9 @@ class Twitter:
             if response.status_code == 200:
                 return response.json()
             else:
-                print('Requesting Twitter API returned an Error!')
-                print('Check your bearer token in .env!')
-                print(response.json())
+                self.logger.error('Requesting Twitter API returned an Error!')
+                self.logger.error('Check your bearer token in .env!')
+                self.logger.error(response.json())
                 return { 'meta': { 'result_count': 0 } }
         except Exception as e:
             self.logger.warning('[twitter] | Error occured in last request - {}'.format(str(e)))
