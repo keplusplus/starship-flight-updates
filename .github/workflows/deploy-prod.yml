@@ -1,4 +1,4 @@
-name: Wireguard SSH deploy (testing)
+name: Wireguard SSH deploy (production)
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
     - name: Establish tunnel
       run: wg-quick up tunnel
-    - name: Deploy to test
+    - name: Deploy to stable
       run: |
         ssh -o StrictHostKeyChecking=no starship@${{ secrets.TARGET_SERVER_LOCAL_IP }} mkdir -p /opt/starship-flight-updates/stable/data_sources
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/*.py starship@${{ secrets.TARGET_SERVER_LOCAL_IP }}:~/stable/
