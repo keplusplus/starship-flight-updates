@@ -12,9 +12,7 @@ from logger import StarshipLogger
 import logging
 import sys
 
-logger = None
-
-def daily_update():
+def daily_update(logger):
     logger.debug('>daily')
     try:
         ccp = CameronCountyParser()
@@ -32,7 +30,7 @@ def daily_update():
     except Exception as e:
         message.ErrMessage().sendErrMessage('Error daily-message!\n\nException:\n' + str(e))
 
-def regular_update(twit:twitter.Twitter):
+def regular_update(twit:twitter.Twitter, logger: StarshipLogger):
     logger.debug('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
     try:
         ccp = CameronCountyParser()
@@ -79,8 +77,8 @@ def main():
     twit.add_twitter_account('SpaceX')
     regular_update(twit)
     active.start(twit)
-    schedule.every().day.at("10:55").do(daily_update)
-    schedule.every(15).to(25).minutes.do(regular_update, twit = twit)
+    schedule.every().day.at("10:55").do(daily_update, logger)
+    schedule.every(15).to(25).minutes.do(regular_update, twit, logger)
     logger.debug('>starting main-main loop')
     while 1:
         schedule.run_pending()
