@@ -7,6 +7,8 @@ from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
 from data_sources.wikipedia import WikipediaParser
 from data_sources import twitter
+import logger, logging
+import sys
 
 def daily_update():
     print('>daily')
@@ -52,7 +54,25 @@ def regular_update(twit:twitter.Twitter):
 def main():
     #daily_update()
     Database().setup_database()
-    twit = twitter.Twitter(0)
+
+    # Initialize logging
+    args = str(sys.argv)
+    if '--testing' in args or '-t' in args:
+        logger = logger.StarshipLogger(level = logging.DEBUG, broadcast = True)
+        if '--branch' in args:
+            index = args.index('--branch')
+            if len(args) > index + 1:
+                logger.info(f'Starting Starship Flight Updates Bot (TESTING) on branch {args[index + 1]}')
+            else:
+                logger.info(f'Starting Starship Flight Updates Bot (TESTING) on unknown branch')
+        else:
+            logger.info('Starting Starship Flight Updates Bot (TESTING)')
+    else:
+        logger = logger.logger.StarshipLogger(level = logging.INFO)
+        logger.info('Starting Starship Flight Updates Bot (PROD)')
+    # ------------------
+
+    twit = twitter.Twitter(0, logger)
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     regular_update(twit)
