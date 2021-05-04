@@ -7,12 +7,15 @@ from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
 from data_sources.wikipedia import WikipediaParser
 from data_sources import twitter
+from data_sources import dotenv_parser
 from logger import StarshipLogger
 import logging
 import sys
 
+logger = None
+
 def daily_update():
-    print('>daily')
+    logger.debug('>daily')
     try:
         ccp = CameronCountyParser()
         ccp.parse()
@@ -20,7 +23,7 @@ def daily_update():
         faa = FAAParser()
         faa.parse()
         FAAData().append_faa(faa.tfrs,False)
-        print('>collected & waiting')
+        logger.debug('>collected & waiting')
         #make sure the message is sent exactly at 11:00 (UTC)
         wait = (datetime.datetime.now().replace(hour=11,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds()
         if wait > 0:
@@ -30,7 +33,7 @@ def daily_update():
         message.ErrMessage().sendErrMessage('Error daily-message!\n\nException:\n' + str(e))
 
 def regular_update(twit:twitter.Twitter):
-    print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
+    logger.debug('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
     try:
         ccp = CameronCountyParser()
         ccp.parse()
@@ -60,13 +63,11 @@ def main():
     args = str(sys.argv)
     if '--testing' in args or '-t' in args:
         logger = StarshipLogger(level = logging.DEBUG, broadcast = True)
-        if '--branch' in args:
-            index = args.index('--branch')
-            if len(args) > index + 1:
-                logger.info(f'Starting Starship Flight Updates Bot (TESTING) on branch {args[index + 1]}')
-            else:
-                logger.info(f'Starting Starship Flight Updates Bot (TESTING) on unknown branch')
-        else:
+
+        try:
+            branch = dotenv_parser.get_value('.env','BRANCH') 
+            logger.info('Starting Starship Flight Updates Bot (TESTING) on branch ' + branch)
+        except ValueError:
             logger.info('Starting Starship Flight Updates Bot (TESTING)')
     else:
         logger = StarshipLogger(level = logging.INFO)
@@ -80,7 +81,7 @@ def main():
     active.start(twit)
     schedule.every().day.at("10:55").do(daily_update)
     schedule.every(15).to(25).minutes.do(regular_update, twit = twit)
-    print('>starting main-main loop')
+    logger.debug('>starting main-main loop')
     while 1:
         schedule.run_pending()
         time.sleep(1)

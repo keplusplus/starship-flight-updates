@@ -55,7 +55,7 @@ def twitter_filter(user:str, text:str) -> bool:
 
 def handle_elon(twit:twitter.Twitter):
     if twit.get_Name('elonmusk') is None and currently_active['closure']!=[] and currently_active['tfr']!=[]:
-        print('add elon')
+        logger.debug('add elon')
         twit.add_twitter_account('elonmusk')
     elif twit.get_Name('elonmusk') is not None and not (currently_active['closure']!=[] and currently_active['tfr']!=[]):
         print('remove elon')
