@@ -7,6 +7,8 @@ db = r'starship.db'
 
 class Database:
 
+    daily_message_time = datetime.datetime.combine(datetime.datetime.utcnow().date(), datetime.time(11,0)).utcnow().time()
+
     def __init__(self) -> None:
         pass
 
@@ -72,8 +74,8 @@ class CameronCountyData:
     def __utctoday_or_between_not_past(self, start:datetime.datetime, end:datetime.datetime): #true if today or between
         return (self.__is_utctoday(start) or self.__is_utctoday(end) or self.__utcnow_between(start,end)) and self.__not_in_past(end)
 
-    def __announce(self, daily_time= datetime.time(11,0), pause = datetime.timedelta(hours=6)):   #true if pause hours before daily_time or after daily
-        return datetime.datetime.now().time() > daily_time or datetime.datetime.now().time() < (datetime.datetime.combine(datetime.date.today(), daily_time) - pause).time()
+    def __announce(self, daily_time= Database().daily_message_time, pause = datetime.timedelta(hours=6)):   #true if pause hours before daily_time or after daily
+        return datetime.datetime.utcnow().time() > daily_time or datetime.datetime.utcnow().time() < (datetime.datetime.combine(datetime.date.today(), daily_time) - pause).time()
 
     def __cameroncounty_valid_changes(self, sendmessage, d, in_db):   #test iv valid state changes
         if in_db['valid'] != d['valid']:    #valid has changed
@@ -179,8 +181,8 @@ class FAAData:
     def __utctoday_or_between_not_past(self, start:datetime.datetime, end:datetime.datetime): #true if today or between
         return (self.__is_utctoday(start) or self.__is_utctoday(end) or self.__utcnow_between(start,end)) and self.__not_in_past(end)
 
-    def __announce(self, daily_time= datetime.time(11,0), pause = datetime.timedelta(hours=6)):   #true if pause hours before daily_time or after daily
-        return datetime.datetime.now().time() > daily_time or datetime.datetime.now().time() <  (datetime.datetime.combine(datetime.date.today(), daily_time) - pause).time()
+    def __announce(self, daily_time= Database().daily_message_time, pause = datetime.timedelta(hours=6)):   #true if pause hours before daily_time or after daily
+        return datetime.datetime.utcnow().time() > daily_time or datetime.datetime.utcnow().time() <  (datetime.datetime.combine(datetime.date.today(), daily_time) - pause).time()
 
     def __faa_altitude_changes(self, sendmessage, d, in_db):
         if sendmessage and self.__utctoday_or_between_not_past(d['begin'],d['end']) and (self.__announce() or in_db['announced']):
