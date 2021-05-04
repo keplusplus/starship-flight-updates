@@ -88,7 +88,8 @@ def main(twit:twitter.Twitter, cycle_seconds = 20):
             Weather().weather_change(currently_active=currently_active)
             manage_youtube(yt)
         elif CameronCountyData().road_closure_today()[0] and FAAData().faa_today()[0]:
-            Weather().weather_change()
+            pass
+            #Weather().weather_change()
         if currently_active['closure']!=[]:
             manage_twitter(twit)
         time.sleep(cycle_seconds)
