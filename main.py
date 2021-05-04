@@ -7,7 +7,8 @@ from data_sources.cameron_county import CameronCountyParser
 from data_sources.faa import FAAParser
 from data_sources.wikipedia import WikipediaParser
 from data_sources import twitter
-import logger, logging
+from logger import StarshipLogger
+import logging
 import sys
 
 def daily_update():
@@ -58,7 +59,7 @@ def main():
     # Initialize logging
     args = str(sys.argv)
     if '--testing' in args or '-t' in args:
-        logger = logger.StarshipLogger(level = logging.DEBUG, broadcast = True)
+        logger = StarshipLogger(level = logging.DEBUG, broadcast = True)
         if '--branch' in args:
             index = args.index('--branch')
             if len(args) > index + 1:
@@ -68,7 +69,7 @@ def main():
         else:
             logger.info('Starting Starship Flight Updates Bot (TESTING)')
     else:
-        logger = logger.logger.StarshipLogger(level = logging.INFO)
+        logger = StarshipLogger(level = logging.INFO)
         logger.info('Starting Starship Flight Updates Bot (PROD)')
     # ------------------
 
