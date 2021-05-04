@@ -60,22 +60,24 @@ class Weather:
                     return
             last = self._last_current_weather['data']
             if w is None: w = self.current_weather()
+            active_message = ''
+            if currently_active != None: active_message = status.Status().active_change(currently_active)
             if self.weather_text(w)[1] != self.weather_text(last)[1]:
                 if self.weather_text(w)[1]:
-                    message.send_message('<a href="https://openweathermap.org/city/4720060"><b>Weather has changed:</b></a>\n<i>'+self.weather_text(w)[0]+'</i>'+status.Status().active_change(currently_active))
+                    message.send_message('<a href="https://openweathermap.org/city/4720060"><b>Weather has changed:</b></a>\n<i>'+self.weather_text(w)[0]+'</i>'+active_message)
                 else:
-                    message.send_message('<a href="https://openweathermap.org/city/4720060"><b>Weather has changed:</b></a>\n<i>'+self.weather_text(w)[0]+'</i>'+status.Status().active_change(currently_active))
+                    message.send_message('<a href="https://openweathermap.org/city/4720060"><b>Weather has changed:</b></a>\n<i>'+self.weather_text(w)[0]+'</i>'+active_message)
             elif self.wind_text(w)[1] != self.wind_text(last)[1]:
                 if self.wind_text(w)[1]:
-                    message.send_message('<a href="https://openweathermap.org/city/4720060"><b>Wind has changed:</b></a>\n<i>'+self.wind_text(w)[0]+'</i>'+status.Status().active_change(currently_active))
+                    message.send_message('<a href="https://openweathermap.org/city/4720060"><b>Wind has changed:</b></a>\n<i>'+self.wind_text(w)[0]+'</i>'+active_message)
                 else:
-                    message.send_message('<a href="https://openweathermap.org/city/4720060"><b>Wind has changed:</b></a>\n<i>'+self.wind_text(w)[0]+'</i>'+status.Status().active_change(currently_active))
+                    message.send_message('<a href="https://openweathermap.org/city/4720060"><b>Wind has changed:</b></a>\n<i>'+self.wind_text(w)[0]+'</i>'+active_message)
             elif self.weather_text(w)[1] != self.weather_text(last)[1] and self.wind_text(w)[1] != self.wind_text(last)[1]:
                 out = '<a href="https://openweathermap.org/city/4720060"><b>Weather and wind have changed:</b></a><i>\nWeather: '
                 out+= ('✅' if self.weather_text(w)[1]  else '❌')
                 out+= ' '+self.weather_text(w)[0]+'\nWind: '
                 out+= ('✅' if self.wind_text(w)[1]  else '❌')
                 out+= ' '+self.wind_text(w)[0]+'</i>'
-                message.send_message(out+status.Status().active_change(currently_active))
+                message.send_message(out+active_message)
         except Exception as e:
             message.ErrMessage().sendErrMessage('Error Weather-weather-change!\n\nException:\n' + str(e))
