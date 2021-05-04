@@ -37,7 +37,7 @@ class Weather:
     def wind_text(self,w:dict, wind_limit = 30):
         wind_speed = w['wind_speed']
         if wind_speed > wind_limit:  #windspeed > 20mph
-            return ('Too windy ('+str(w['wind_speed'])+' km/h, max:30km/h)', False)
+            return ('Too windy ('+str(w['wind_speed'])+' km/h, max:'+str(wind_limit)+' km/h)', False)
         elif wind_speed > wind_limit/2:
             return ('Windy ('+str(w['wind_speed'])+' km/h)', True)
         elif wind_speed > 0:
