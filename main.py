@@ -19,7 +19,7 @@ def daily_update():
         FAAData().append_faa(faa.tfrs,False)
         print('>collected & waiting')
         #make sure the message is sent exactly at 11:00 (UTC)
-        wait = (datetime.datetime.now().replace(hour=11,minute=0,second=0,microsecond=0)-datetime.datetime.now()).total_seconds()
+        wait = (datetime.datetime.combine(datetime.datetime.utcnow().date(), Database().daily_message_time)-datetime.datetime.utcnow()).total_seconds()
         if wait > 0:
             time.sleep(wait)
         message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().today_forecast()),color=16767232)
@@ -27,7 +27,7 @@ def daily_update():
         message.ErrMessage().sendErrMessage('Error daily-message!\n\nException:\n' + str(e))
 
 def regular_update(twit:twitter.Twitter):
-    print('>updating '+datetime.datetime.now().strftime("%H:%M:%S %d-%m-%Y"))
+    print('>updating '+datetime.datetime.utcnow().strftime("%H:%M:%S %d-%m-%Y"))
     try:
         ccp = CameronCountyParser()
         ccp.parse()
@@ -57,7 +57,8 @@ def main():
     twit.add_twitter_account('SpaceX')
     regular_update(twit)
     active.start(twit)
-    schedule.every().day.at("10:55").do(daily_update)
+    calcDailyTime = datetime.datetime.combine(datetime.datetime.utcnow().date(),Database().daily_message_time)-datetime.timedelta(minutes=5)
+    schedule.every().day.at(calcDailyTime.strftime('%H:%M')).do(daily_update)
     schedule.every(15).to(25).minutes.do(regular_update, twit = twit)
     print('>starting main-main loop')
     while 1:
