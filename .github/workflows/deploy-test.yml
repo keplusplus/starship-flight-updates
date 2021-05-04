@@ -37,7 +37,7 @@ jobs:
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/*.py starship@${{ secrets.TARGET_SERVER_LOCAL_IP }}:~/test/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/data_sources/*.py starship@${{ secrets.TARGET_SERVER_LOCAL_IP }}:~/test/data_sources/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/.env.default starship@${{ secrets.TARGET_SERVER_LOCAL_IP }}:~/test/
-        ssh -o StrictHostKeyChecking=no starship@${{ secrets.TARGET_SERVER_LOCAL_IP }} cat /opt/starship-flight-updates/test/.env | sed -r "s/BRANCH=([^\"\n]+)/BRANCH=${GITHUB_REF##*/}/" | tee /opt/starship-flight-updates/test/.env
+        ssh -o StrictHostKeyChecking=no starship@${{ secrets.TARGET_SERVER_LOCAL_IP }} cat /opt/starship-flight-updates/test/.env | sed -nr "s/BRANCH=([^\"\n]+)/BRANCH=${GITHUB_REF##*/}/" | ssh -o StrictHostKeyChecking=no starship@${{ secrets.TARGET_SERVER_LOCAL_IP }} tee /opt/starship-flight-updates/test/.env
     - name: Restart the service
       run: ssh -o StrictHostKeyChecking=no starship@${{ secrets.TARGET_SERVER_LOCAL_IP }} systemctl --user restart starship-flight-updates-testing
     - name: Close tunnel
