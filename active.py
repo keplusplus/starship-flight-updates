@@ -78,7 +78,7 @@ def manage_youtube(yt:youtube.Youtube()):
         for x in update:
             message.send_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>',False)
 
-def main(twit:twitter.Twitter):
+def main(twit:twitter.Twitter, cycle_seconds = 20):
     print('>starting active-main loop')
     yt = youtube.Youtube()
     while 1:
@@ -87,9 +87,12 @@ def main(twit:twitter.Twitter):
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
             manage_youtube(yt)
+        elif CameronCountyData().road_closure_today()[0] and FAAData().faa_today()[0]:
+            pass
+            #Weather().weather_change()
         if currently_active['closure']!=[]:
             manage_twitter(twit)
-        time.sleep(20)
+        time.sleep(cycle_seconds)
 
 def start(twit:twitter.Twitter):
     Thread(target=main, args=(twit,)).start()
