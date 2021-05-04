@@ -64,7 +64,7 @@ def main():
 
         try:
             branch = dotenv_parser.get_value('.env','BRANCH') 
-            logger.info('Starting Starship Flight Updates Bot (TESTING) on branch ' + branch)
+            logger.info('Starting Starship Flight Updates Bot (TESTING) on ref ' + branch)
         except ValueError:
             logger.info('Starting Starship Flight Updates Bot (TESTING)')
     else:
