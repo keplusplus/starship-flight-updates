@@ -78,8 +78,8 @@ def manage_youtube(yt:youtube.Youtube()):
         for x in update:
             message.send_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>',False)
 
-def main(twit:twitter.Twitter):
-    print('>starting active-main loop')
+def main(twit:twitter.Twitter, logger):
+    logger.debug('>starting active-main loop')
     yt = youtube.Youtube()
     while 1:
         manage_closures()
@@ -91,6 +91,6 @@ def main(twit:twitter.Twitter):
             manage_twitter(twit)
         time.sleep(20)
 
-def start(twit:twitter.Twitter):
-    Thread(target=main, args=(twit,)).start()
+def start(twit:twitter.Twitter, logger):
+    Thread(target=main, args=(twit,logger)).start()
     pass

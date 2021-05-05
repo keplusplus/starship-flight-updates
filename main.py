@@ -76,9 +76,10 @@ def main():
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     regular_update(twit, logger)
-    active.start(twit)
+    active.start(twit, logger)
     calcDailyTime = datetime.datetime.combine(datetime.datetime.utcnow().date(),Database().daily_message_time)-datetime.timedelta(minutes=5)
     schedule.every().day.at(calcDailyTime.strftime('%H:%M')).do(daily_update, logger)
+    logger.info('>Daily-Update Time: '+calcDailyTime.strftime('%H:%M'))
     schedule.every(15).to(25).minutes.do(regular_update, twit, logger)
     logger.debug('>starting main-main loop')
     while 1:
