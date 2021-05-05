@@ -54,7 +54,7 @@ def twitter_filter(user:str, text:str) -> bool:
 
 def handle_elon(twit:twitter.Twitter):
     if twit.get_Name('elonmusk') is None and currently_active['closure']!=[] and currently_active['tfr']!=[]:
-        print('add elon')
+        logger.debug('add elon')
         twit.add_twitter_account('elonmusk')
     elif twit.get_Name('elonmusk') is not None and not (currently_active['closure']!=[] and currently_active['tfr']!=[]):
         print('remove elon')
@@ -77,8 +77,8 @@ def manage_youtube(yt:youtube.Youtube()):
         for x in update:
             message.send_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>',False)
 
-def main(twit:twitter.Twitter, cycle_seconds = 20):
-    print('>starting active-main loop')
+def main(twit:twitter.Twitter, logger):
+    logger.debug('>starting active-main loop')
     yt = youtube.Youtube()
     while 1:
         manage_closures()
@@ -92,6 +92,6 @@ def main(twit:twitter.Twitter, cycle_seconds = 20):
             manage_twitter(twit)
         time.sleep(cycle_seconds)
 
-def start(twit:twitter.Twitter):
-    Thread(target=main, args=(twit,)).start()
+def start(twit:twitter.Twitter, logger):
+    Thread(target=main, args=(twit,logger)).start()
     pass

@@ -20,15 +20,15 @@ class Twitter:
     
     def __req_json(self, endpoint):
         try:
-            self.logger.info('[twitter] | GET {}'.format(endpoint))
+            self.logger.debug('[twitter] | GET {}'.format(endpoint))
             response = requests.get(endpoint, headers=Twitter.headers)
-            self.logger.info('[twitter] | {} Reponse: {}'.format(response.status_code, response.json()))
+            self.logger.debug('[twitter] | {} Reponse: {}'.format(response.status_code, response.json()))
             if response.status_code == 200:
                 return response.json()
             else:
-                print('Requesting Twitter API returned an Error!')
-                print('Check your bearer token in .env!')
-                print(response.json())
+                self.logger.error('Requesting Twitter API returned an Error!')
+                self.logger.error('Check your bearer token in .env!')
+                self.logger.error(response.json())
                 return { 'meta': { 'result_count': 0 } }
         except Exception as e:
             self.logger.warning('[twitter] | Error occured in last request - {}'.format(str(e)))
