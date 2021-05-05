@@ -7,7 +7,7 @@ db = r'starship.db'
 
 class Database:
 
-    daily_message_time = datetime.datetime.combine(datetime.datetime.utcnow().date(), datetime.time(11,0)).utcnow().time()
+    daily_message_time = datetime.datetime.combine(datetime.datetime.utcnow().date(), datetime.time(16,48)).utcnow().time()
 
     def __init__(self) -> None:
         pass
