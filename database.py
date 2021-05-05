@@ -7,7 +7,11 @@ db = r'starship.db'
 
 class Database:
 
-    daily_message_time = datetime.datetime.combine(datetime.datetime.utcnow().date(), datetime.time(11,0)).utcnow().time()
+    def sys_time_to_utc(time:datetime.datetime):
+        return time + (datetime.datetime.utcnow() - datetime.datetime.now())
+
+    daily_message_time = datetime.time(11,0)    #enter utc time when daily-update should run
+    daily_message_time = sys_time_to_utc(datetime.datetime.combine(datetime.datetime.now().date(), daily_message_time)).time()
 
     def __init__(self) -> None:
         pass
