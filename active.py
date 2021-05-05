@@ -43,8 +43,7 @@ def twitter_filter(user:str, text:str) -> bool:
         ],
         'BocaChicaGal':[
             'Alert',
-            'evac',
-            'notice'
+            'evac'
         ]
     }
     params = f[user]
@@ -87,9 +86,11 @@ def main(twit:twitter.Twitter, logger):
         if (currently_active['closure']!=[] and currently_active['tfr']!=[]):
             Weather().weather_change(currently_active=currently_active)
             manage_youtube(yt)
+        elif CameronCountyData().road_closure_today()[0] and FAAData().faa_today()[0] and datetime.datetime.utcnow().time() > Database().daily_message_time:
+            Weather().weather_change()
         if currently_active['closure']!=[]:
             manage_twitter(twit)
-        time.sleep(20)
+        time.sleep(cycle_seconds)
 
 def start(twit:twitter.Twitter, logger):
     Thread(target=main, args=(twit,logger)).start()
