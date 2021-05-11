@@ -38,6 +38,9 @@ class CameronCountyParser:
                 time_text = td[2].get_text()
                 status_text = td[3].get_text()
 
+                if '' in [date_text.strip(), time_text.strip(), status_text.strip()]:
+                    continue    #skips this iteration if this row has empty values
+
                 begin = dparser.parse(date_text.lower().split('to')[0],fuzzy=True).date()
                 end = begin
                 if 'to' in date_text.lower():

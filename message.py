@@ -1,4 +1,4 @@
-import telebot, discord, datetime, status, database, sys, os
+import telebot, discord, datetime, status, database, sys, os, traceback
 from data_sources.weather import Weather
 
 class ErrMessage:
@@ -10,7 +10,9 @@ class ErrMessage:
     def errorInfo(self) -> str:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        return '\n\nType:\n'+str(exc_type)+'\n\nLocation\nFile: '+str(fname)+'\nLine: '+str(exc_tb.tb_lineno)
+        fullTrace = traceback.format_exc()
+        errMessage = fullTrace.split('\n')[-2]
+        return '\n\nType:\n'+str(exc_type)+'\n\nLocation\nFile: '+str(fname)+'\nLine: '+str(exc_tb.tb_lineno)+'\n\n'+str(fullTrace)+'\n\nErrorMessage:\n'+str(errMessage)
 
     def sendErrMessage(self, message, mustPassedHours = 2):
         message += self.errorInfo()
@@ -37,7 +39,7 @@ def send_test_message(message, disable_link_preview = True):
 def history_message(data:dict, changes:dict = {}) -> str:
     for d in data:  #underline changes
         if d in changes:
-            data[d] = '<u>'+str(data[d])+'</u>\n<i>(was '+changes[d][-1]+')</i>'
+            data[d] = '<u>'+str(data[d])+'</u>\n<i>(was '+str(changes[d][-1])+')</i>'
     out = '<a href="https://en.wikipedia.org/wiki/Starship_development_history"><b>𝗗𝗲𝘃𝗲𝗹𝗼𝗽𝗺𝗲𝗻𝘁 𝗨𝗽𝗱𝗮𝘁𝗲</b></a>\n'
     out+='<u><b>'+data['name']+'</b></u> '
     if changes == {}:
