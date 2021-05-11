@@ -2,16 +2,18 @@ import sqlite3, datetime, message, time
 from data_sources import library_helper
 library_helper.assure_ext_library('pytz')
 import pytz
+library_helper.assure_ext_library('dateutil')
+from dateutil import tz
 
 db = r'starship.db'
 
 class Database:
 
-    def sys_time_to_utc(time:datetime.datetime):
-        return time + (datetime.datetime.utcnow() - datetime.datetime.now())
+    def general_utc_time_to_local_time(time:datetime.time):
+        time = datetime.datetime.combine(datetime.datetime.utcnow().date(),time).replace(tzinfo=tz.tzutc())
+        return time.astimezone(tz.tzlocal()).replace(tzinfo=None).time()
 
-    daily_message_time = datetime.time(11,0)    #enter utc time when daily-update should run
-    daily_message_time = sys_time_to_utc(datetime.datetime.combine(datetime.datetime.now().date(), daily_message_time)).time()
+    daily_message_time = general_utc_time_to_local_time(datetime.time(11,0)) #enter utc time when daily-update should run
 
     def __init__(self) -> None:
         pass
