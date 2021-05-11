@@ -12,6 +12,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Determine branch name
+      run: echo Working on Branch ${{ github.head_ref }}
+
     - name: Install wireguard
       run: sudo apt-get install wireguard
 
@@ -34,6 +37,7 @@ jobs:
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/*.py starship@${{ secrets.TARGET_SERVER_LOCAL_IP }}:~/test/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/data_sources/*.py starship@${{ secrets.TARGET_SERVER_LOCAL_IP }}:~/test/data_sources/
         scp -o StrictHostKeyChecking=no $GITHUB_WORKSPACE/.env.default starship@${{ secrets.TARGET_SERVER_LOCAL_IP }}:~/test/
+        ssh -o StrictHostKeyChecking=no starship@${{ secrets.TARGET_SERVER_LOCAL_IP }} sed -i -r 's/BRANCH=[^\"\\n]+/BRANCH=${{ github.head_ref }}/' /opt/starship-flight-updates/test/.env
     - name: Restart the service
       run: ssh -o StrictHostKeyChecking=no starship@${{ secrets.TARGET_SERVER_LOCAL_IP }} systemctl --user restart starship-flight-updates-testing
     - name: Close tunnel
