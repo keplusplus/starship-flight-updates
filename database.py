@@ -277,11 +277,11 @@ class WikiData:
         out = {}
         if new.keys() == old.keys():
             for x in new:
-                if new[x] != old[x]:
+                if str(new[x]).lower() != str(old[x]).lower():
                     out[x] = [new[x],old[x]]
         return out
 
-    def append_history(self, data:list, passedtime = datetime.timedelta(hours=2)):
+    def append_history(self, data:list, passedtime = datetime.timedelta(hours=12)):
         conn = sqlite3.connect(db, timeout=20)
         c = conn.cursor()
         for d in data:
