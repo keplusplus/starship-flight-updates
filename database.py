@@ -93,7 +93,7 @@ class CameronCountyData:
 
     def __cameroncounty_time_changes(self, sendmessage, d, in_db):    #test if time changes
         if d['begin'] != in_db['begin'] or d['end'] != in_db['end']:    #times have changed
-            if sendmessage and (self.__utctoday_or_between_not_past(d['begin'],d['end']) or self.__utctoday_or_between_not_past(in_db['begin'],in_db['end'])) and (self.__announce() or in_db['announced']):
+            if sendmessage and d['valid'] and (self.__utctoday_or_between_not_past(d['begin'],d['end']) or self.__utctoday_or_between_not_past(in_db['begin'],in_db['end'])) and (self.__announce() or in_db['announced']):
                 d['announced'] = True
                 message.send_message("<a href='https://www.cameroncounty.us/spacex/'><b>Today's road closure has changed!</b></a>\n<u>From "+ Database().datetime_to_string(d['begin'])+' to '+ Database().datetime_to_string(d['end'])+'</u> (UTC)\n⬆️\n<i>From '+ Database().datetime_to_string(in_db['begin'])+' to '+ Database().datetime_to_string(in_db['end'])+'</i> (UTC)')
 
@@ -316,10 +316,10 @@ class WikiData:
                 c.execute('UPDATE history SET firstSpotted = ?,rolledOut = ?, firstStaticFire = ?, maidenFlight = ?, decomissioned = ?, constructionSite = ?, status = ?, flights = ? WHERE name = ?',(temp['firstSpotted'],temp['rolledOut'],temp['firstStaticFire'],temp['maidenFlight'],temp['decomissioned'],temp['constructionSite'],temp['status'],temp['flights'],temp['name']))
                 old = {'name':in_db[0],'firstSpotted':in_db[1],'rolledOut':in_db[2],'firstStaticFire':in_db[3],'maidenFlight':in_db[4],'decomissioned':in_db[5],'constructionSite':in_db[6],'status':in_db[7],'flights':in_db[8]}
                 if old['status'] not in ['Retired','Destroyed','Scrapped','Suspended'] or (old['status'] != temp['status'] and temp['status'] not in ['Retired','Destroyed','Scrapped','Suspended']): #-> no message for retired/destroyed/scrapped starships
-                    message.send_test_message(message.history_message(temp, self.compareDicts(temp,old)))
+                    message.send_message(message.history_message(temp, self.compareDicts(temp,old)))
                     time.sleep(2)
             else:   #not in db
-                message.send_test_message(message.history_message(temp))
+                message.send_message(message.history_message(temp))
                 c.execute('INSERT INTO history(name,firstSpotted,rolledOut,firstStaticFire,maidenFlight,decomissioned,constructionSite,status,flights) VALUES(?,?,?,?,?,?,?,?,?)',(temp['name'],temp['firstSpotted'],temp['rolledOut'],temp['firstStaticFire'],temp['maidenFlight'],temp['decomissioned'],temp['constructionSite'],temp['status'],temp['flights']))
                 time.sleep(2)
             c.execute("DELETE FROM temphistory WHERE name = ?", (temp['name'],))
