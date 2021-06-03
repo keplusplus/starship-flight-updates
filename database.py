@@ -277,7 +277,7 @@ class WikiData:
         out = {}
         if new.keys() == old.keys():
             for x in new:
-                if str(new[x]).lower() != str(old[x]).lower():
+                if str(new[x]).lower().strip() != str(old[x]).lower().strip():
                     out[x] = [new[x],old[x]]
         return out
 
