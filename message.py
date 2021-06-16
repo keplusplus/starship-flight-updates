@@ -36,9 +36,12 @@ def send_test_message(message, disable_link_preview = True):
         return
     telebot.send_message(telebot.err_channel_id,message,disable_link_preview)
 
+def ignore_change(change:str) -> bool:
+    return change.lower().strip() in ['not yet','n/a']
+
 def history_message(data:dict, changes:dict = {}) -> str:
     for d in data:  #underline changes
-        if d in changes:
+        if d in changes and not ignore_change(changes[d]):
             data[d] = '<u>'+str(data[d])+'</u>\n<i>(was: '+str(changes[d][-1])+')</i>'
     out = '<a href="https://en.wikipedia.org/wiki/Starship_development_history"><b>𝗗𝗲𝘃𝗲𝗹𝗼𝗽𝗺𝗲𝗻𝘁 𝗨𝗽𝗱𝗮𝘁𝗲</b></a>\n'
     out+='<u><b>'+data['name']+'</b></u> '
