@@ -77,7 +77,7 @@ def manage_youtube(yt:youtube.Youtube()):
         for x in update:
             message.send_message('<a href="'+x+'">‌‌<u><b>New Video by SpaceX</b></u></a>',False)
 
-def main(twit:twitter.Twitter, logger):
+def main(twit:twitter.Twitter, logger, cycle_seconds = 20):
     logger.debug('>starting active-main loop')
     yt = youtube.Youtube()
     while 1:

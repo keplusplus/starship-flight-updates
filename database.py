@@ -281,7 +281,7 @@ class WikiData:
                     out[x] = [new[x],old[x]]
         return out
 
-    def append_history(self, data:list, passedtime = datetime.timedelta(hours=12)):
+    def append_history(self, data:list, passedtime = datetime.timedelta(hours=24)):
         conn = sqlite3.connect(db, timeout=20)
         c = conn.cursor()
         for d in data:
