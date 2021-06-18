@@ -1,5 +1,8 @@
 import telebot, discord, datetime, status, database, sys, os, traceback
 from data_sources.weather import Weather
+from data_sources import library_helper
+library_helper.assure_ext_library('python-dateutil')
+import dateutil.parser as dparser
 
 class ErrMessage:
     errMessages = {}    #key = errMessage; value = datetime
@@ -39,7 +42,10 @@ def send_test_message(message, disable_link_preview = True):
 def ignore_change(change:str) -> bool:
     return change[0].lower().strip() in ['not yet','n/a']
 
-def history_message(data:dict, changes:dict = {}) -> str:
+def history_message(data:dict, changes:dict = {}, includedMonths = 3) -> str:   #includedMonths to the current year
+    relevantDate = dparser.parse(''.join(filter(str.isdigit, data['firstSpotted'])),fuzzy=True)
+    if relevantDate.year >= (datetime.datetime.utcnow() - datetime.timedelta(days=30*includedMonths)).year:    #ignores changes from other years
+        return ''
     for d in data:  #underline changes
         if d in changes and not ignore_change(changes[d]):
             data[d] = '<u>'+str(data[d])+'</u>\n<i>(was: '+str(changes[d][-1])+')</i>'
