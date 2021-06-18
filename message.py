@@ -37,7 +37,7 @@ def send_test_message(message, disable_link_preview = True):
     telebot.send_message(telebot.err_channel_id,message,disable_link_preview)
 
 def ignore_change(change:str) -> bool:
-    return change.lower().strip() in ['not yet','n/a']
+    return change[0].lower().strip() in ['not yet','n/a']
 
 def history_message(data:dict, changes:dict = {}) -> str:
     for d in data:  #underline changes
