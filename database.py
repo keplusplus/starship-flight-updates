@@ -279,7 +279,7 @@ class WikiData:
             for x in new:
                 if str(new[x]).lower().strip() != str(old[x]).lower().strip():
                     out[x] = [new[x],old[x]]
-        return out
+        return out  #{change:[new, old]}
 
     def append_history(self, data:list, passedtime = datetime.timedelta(hours=24)):
         conn = sqlite3.connect(db, timeout=20)
