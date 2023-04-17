@@ -6,11 +6,10 @@ library_helper.assure_ext_library('python-dateutil')
 import dateutil.parser as dparser
 import requests
 import locale
-import telebot
 from datetime import datetime, time
 
 class CameronCountyParser:
-    url = 'https://www.cameroncounty.us/spacex/'
+    url = 'https://www.cameroncountytx.gov/spacex/'
     headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',
@@ -31,7 +30,8 @@ class CameronCountyParser:
             req = requests.get(self.url, self.headers)
             soup = BeautifulSoup(req.content, 'html.parser')
             table = soup.find('table')
-            tr = table.find('tbody').find_all('tr')
+            table_bodies = table.find_all('tbody') # Table has two (!) bodies (first can be ignored)
+            tr = table_bodies[1].find_all('tr') if len(table_bodies) > 1 else table_bodies[0].find_all('tr')
             for row in tr:
                 td = row.find_all('td')
                 date_text = td[1].get_text()
@@ -49,7 +49,7 @@ class CameronCountyParser:
                 begin = datetime.combine(begin, dparser.parse(time_text.lower().split('to')[0],fuzzy=True).time())
                 end = datetime.combine(begin, dparser.parse(time_text.lower().split('to')[1],fuzzy=True).time())
                 
-                if 'scheduled' in status_text.lower():
+                if 'scheduled' in status_text.lower() or 'possible' in status_text.lower():
                     valid = True
                 else:
                     valid = False
