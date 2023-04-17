@@ -23,7 +23,7 @@ def daily_update(logger):
         FAAData().append_faa(faa.tfrs,False)
         logger.debug('>collected & waiting')
         #make sure the message is sent exactly at 11:00 (UTC)
-        wait = (datetime.datetime.combine(datetime.datetime.utcnow().date(), Database().daily_message_time)-datetime.datetime.utcnow()).total_seconds()
+        wait = (datetime.datetime.combine(datetime.datetime.now().date(), Database().daily_message_time)-datetime.datetime.now()).total_seconds()
         if wait > 0:
             time.sleep(wait)
         message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().today_forecast()),color=16767232)
