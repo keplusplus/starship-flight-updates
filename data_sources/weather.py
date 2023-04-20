@@ -13,15 +13,6 @@ class Weather:
     def __init__(self):
         pass
 
-    def today_forecast(self):
-        try:
-            r = requests.get('http://api.openweathermap.org/data/2.5/onecall',{'lat':25.997083229714256,'lon':-97.15597286864448,'exclude':'current,minutely,hourly,alerts','units':'metric','appid':Weather.APIKEY}).json()['daily'][0]
-            return {'temp':r['temp']['day'],'feels_like':r['feels_like']['day'],'pressure':r['pressure'],'humidity':r['humidity'],'wind_speed':round(r['wind_speed']*3.6,2),'wind_deg':r['wind_deg'],'weather':r['weather'][0]}
-        except Exception as e:
-            if e is not requests.ConnectionError:
-                message.ErrMessage().sendErrMessage('Error Weather-today-forecast!\n\nException:\n' + str(e))
-            return {}
-
     def current_weather(self, sincelastmins = 20):
         try:
             if self._last_current_weather['time'] < datetime.datetime.utcnow()-datetime.timedelta(minutes=sincelastmins):

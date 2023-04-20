@@ -26,7 +26,7 @@ def daily_update(logger):
         wait = (datetime.datetime.combine(datetime.datetime.now().date(), Database().daily_message_time)-datetime.datetime.now()).total_seconds()
         if wait > 0:
             time.sleep(wait)
-        message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().today_forecast()),color=16767232)
+        message.send_message(message.daily_update_message(closures=CameronCountyData().road_closure_today(),tfrs=FAAData().faa_today(),weather=Weather().current_weather()),color=16767232)
     except Exception as e:
         message.ErrMessage().sendErrMessage('Error daily-message!\n\nException:\n' + str(e))
 
