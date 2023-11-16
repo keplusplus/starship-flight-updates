@@ -7,9 +7,12 @@ from data_sources import dotenv_parser
 import logger
 
 class Twitter:
+    disabled = True
+
     tweet_endpoint = 'https://api.twitter.com/2/users/:id/tweets?exclude=retweets'
     lookup_endpoint = 'https://api.twitter.com/2/users/by'
     env = dotenv_parser.get_env('.env')
+
     try:
         headers = {
             'Authorization': 'Bearer ' + env['TWITTER_BEARER_TOKEN']
@@ -19,6 +22,9 @@ class Twitter:
         print('Check Twitter credentials in your .env file!')
     
     def __req_json(self, endpoint):
+        if self.disabled:
+            return { 'meta': { 'result_count': 0 } }
+
         try:
             self.logger.debug('[twitter] | GET {}'.format(endpoint))
             response = requests.get(endpoint, headers=Twitter.headers)

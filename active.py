@@ -89,7 +89,8 @@ def main(twit:twitter.Twitter, logger, cycle_seconds = 20):
         elif CameronCountyData().road_closure_today()[0] and FAAData().faa_today()[0] and datetime.datetime.utcnow().time() > Database().daily_message_time:
             Weather().weather_change()
         if currently_active['closure']!=[] or currently_active['tfr']!=[]:
-            manage_twitter(twit)
+            # manage_twitter(twit)
+            pass
         time.sleep(cycle_seconds)
 
 def start(twit:twitter.Twitter, logger):
