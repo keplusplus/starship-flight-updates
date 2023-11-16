@@ -128,6 +128,6 @@ def daily_update_message(closures, tfrs, weather) -> str:
     out += status.Status().daily_status(weather)
     out+='<i>(We will keep you updated if anything changes!)</i>'
 
-    if not (flight or staticfire):  #daily only if anything is possible
-        out = ''
+    # if not (flight or staticfire):  #daily only if anything is possible
+    #     out = ''
     return out
