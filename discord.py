@@ -5,6 +5,13 @@ from data_sources import dotenv_parser
 webhook_url = dotenv_parser.get_value('.env','DISCORD_URL')
 error_webhook_url = dotenv_parser.get_value('.env','DISCORD_ERROR')
 
+disabled = False
+if webhook_url == '' or error_webhook_url == '':
+    # TODO: use logger
+    print('Discord publishing has been disabled due to missing configuration in .env')
+    print('Sending discord messages to console instead.')
+    disabled = True
+
 def handle_link(text:str , disable_link_preview:bool):  #rekursive
     if '<a' not in text:
         return text
@@ -30,6 +37,12 @@ def send_discord_message(text:str, disable_link_preview = False, color = 7707321
     text = text.replace('<i>','_').replace('</i>','_')      #italic
     text = text.replace('<s>','~~').replace('</s>','~~')    #strike
     text = handle_link(text,disable_link_preview)
+
+    if disabled:
+        # TODO: use logger
+        print(text)
+        return
+
     if disable_link_preview:
         requests.post(webhook, json = {'embeds':[{'description':text,'color': color},]}) #embed
     else:

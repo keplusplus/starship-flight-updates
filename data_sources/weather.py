@@ -10,10 +10,20 @@ class Weather:
     APIKEY = dotenv_parser.get_value('.env','WEATHER_KEY')
     _last_current_weather = {'time':datetime.datetime.min,'data':{}}
 
+    disabled = False
+    if APIKEY == '':
+        # TODO: use logger
+        print('Weather is using static mock data due to missing configuration in .env')
+        disabled = True
+
     def __init__(self):
         pass
 
     def current_weather(self, sincelastmins = 20):
+        if self.disabled:
+            # Use static mock data
+            return  {'temp':20,'feels_like':20,'pressure':10.10,'humidity':65,'wind_speed':12.5,'wind_deg':120,'weather':{'id':800,'main':'Clear','description':'clear sky','icon':'01d'}}
+
         try:
             if self._last_current_weather['time'] < datetime.datetime.utcnow()-datetime.timedelta(minutes=sincelastmins):
                 r = requests.get('http://api.openweathermap.org/data/2.5/onecall',{'lat':25.997083229714256,'lon':-97.15597286864448,'exclude':'daily,minutely,hourly,alerts','units':'metric','appid':self.APIKEY}).json()['current']
