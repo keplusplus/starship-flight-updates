@@ -72,7 +72,7 @@ def main():
         logger.info('Starting Starship Flight Updates Bot (PROD)')
     # ------------------
 
-    twit = twitter.Twitter(0, logger)
+    twit = twitter.Twitter(logger, 0)
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     regular_update(twit, logger)

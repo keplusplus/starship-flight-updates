@@ -42,7 +42,7 @@ class Twitter:
                 ErrMessage().sendErrMessage('Error Twitter-req-json!\n\nException:\n' + str(e))
             return None
 
-    def __init__(self, timespan=0, logger=logger.StarshipLogger('twitter.log')):
+    def __init__(self, logger, timespan=0):
         self.accounts = []
         self.latest_tweets = {}
         self.timespan = timespan
