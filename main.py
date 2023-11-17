@@ -48,7 +48,7 @@ def regular_update(twit:twitter.Twitter, logger: StarshipLogger):
         #wiki.starships.append({'name':'Test','firstSpotted':'test2021','rolledOut':'test','firstStaticFire':'test','maidenFlight':'test','decomissioned':'test','constructionSite':'test','status':'test','flights':-1})
         WikiData().append_history(wiki.starships)
 
-        active.manage_twitter(twit)
+        # active.manage_twitter(twit)
     except Exception as e:
         message.ErrMessage().sendErrMessage('Error regular-update!\n\nException:\n' + str(e))
 
@@ -72,7 +72,7 @@ def main():
         logger.info('Starting Starship Flight Updates Bot (PROD)')
     # ------------------
 
-    twit = twitter.Twitter(0, logger)
+    twit = twitter.Twitter(logger, 0)
     twit.add_twitter_account('BocaChicaGal')
     twit.add_twitter_account('SpaceX')
     regular_update(twit, logger)

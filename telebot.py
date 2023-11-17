@@ -4,12 +4,24 @@ bot_token = dotenv_parser.get_value('.env','TELEBOT_TOKEN')    #https://api.tele
 channel_id = dotenv_parser.get_value('.env','TELEBOT_CHANNEL')
 err_channel_id = dotenv_parser.get_value('.env','TELEBOT_ERR_CHANNEL')
 
+disabled = False
+if bot_token == '' or channel_id == '' or err_channel_id == '':
+    # TODO: use logger
+    print('Telegram publishing has been disabled due to missing configuration in .env')
+    disabled = True
+
 def send_err_message(message, chatid = err_channel_id):
+    if disabled:
+        return
+
     try:
         return requests.post('https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + str(chatid) ,{'text':'⚠️'+message,'disable_web_page_preview':True}).json()
     except: pass
 
 def send_message(chatid, message, disable_link_preview = False):
+    if disabled:
+        return
+
     #print('<'+message)
     resp = ''
     try:
@@ -21,6 +33,9 @@ def send_message(chatid, message, disable_link_preview = False):
     return resp
 
 def send_photo(chatid, img, caption=''):
+    if disabled:
+        return
+
     #print('<'+caption+' : '+img)
     if len(caption) > 1024:
         resp = send_photo(chatid,img)
